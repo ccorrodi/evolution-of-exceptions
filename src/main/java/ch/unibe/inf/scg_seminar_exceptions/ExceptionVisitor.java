@@ -11,6 +11,8 @@ import java.util.regex.Pattern;
 import com.github.javaparser.JavaParser;
 import com.github.javaparser.ast.Node;
 import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
+import com.github.javaparser.ast.body.MethodDeclaration;
+import com.github.javaparser.ast.expr.MethodCallExpr;
 import com.github.javaparser.ast.stmt.ReturnStmt;
 import com.github.javaparser.ast.stmt.Statement;
 import com.github.javaparser.ast.stmt.ThrowStmt;
@@ -30,7 +32,7 @@ public class ExceptionVisitor {
             try {
                 new VoidVisitorAdapter<Object>() {
                     @Override
-                    public void visit(ClassOrInterfaceDeclaration n, Object arg) {
+                    public void visit(MethodDeclaration n, Object arg) {
                         super.visit(n, arg);
                         Pattern pattern = Pattern.compile(".*throws.*", Pattern.DOTALL);
                         if(pattern.matcher(n.toString()).matches()){
