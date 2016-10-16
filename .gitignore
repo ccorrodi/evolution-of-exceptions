@@ -1,0 +1,4 @@
+github-projects/
+!/github-projects/testclasses
+/target/
+exceptions.db
