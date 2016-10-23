@@ -50,7 +50,10 @@ public class ExceptionVisitor {
     }
     
     public static void listClassesDerivedFromException(File projectDir) {
-
+    	JavaExceptionNames jen = new JavaExceptionNames();
+    	ArrayList<String> checkedExceptionNames = jen.getExceptionNamesFrom("checked_exceptions.txt");
+    	ArrayList<String> uncheckedExceptionNames = jen.getExceptionNamesFrom("unchecked_exceptions.txt");
+    	
     	ArrayList<HierarchieEntry> classTree = new ArrayList<HierarchieEntry>();
     	DatabaseManager dbManager = DatabaseManager.getInstance();
     	
@@ -98,19 +101,14 @@ public class ExceptionVisitor {
 	    			pathHistory.add(tmp);
 	    		}
 	    		tmp = tmp.next();
-	    		
-	       		if(tmp.getClassName().equals("IllegalArgumentException") || 
-	       				tmp.getClassName().equals("IllegalStateException") || 
-	       				tmp.getClassName().equals("NullPointerException") || 
-	       				tmp.getClassName().equals("RuntimeException")){
+	       		if(uncheckedExceptionNames.contains(tmp.getClassName())){
 	       			
 	       			DatabaseExceptionEntry entry = new DatabaseExceptionEntry(projectDir.getName(), "not implemented", "unchecked exception class", hierarchieEntry);
 					dbManager.addObject(entry);
 	       		
 					System.out.println("Unchecked Exception: " + hierarchieEntry.getClassName());
 					break;
-	       		} else if(tmp.getClassName().equals("Exception") || 
-	       				tmp.getClassName().equals("IOException") ) {
+	       		} else if( checkedExceptionNames.contains(tmp.getClassName()) ) {
 	       			
 	       			DatabaseExceptionEntry entry = new DatabaseExceptionEntry(projectDir.getName(), "not implemented", "checked exception class", hierarchieEntry);
 					dbManager.addObject(entry);
