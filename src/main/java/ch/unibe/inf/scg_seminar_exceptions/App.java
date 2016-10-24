@@ -14,9 +14,6 @@ public class App
     	ExceptionVisitor.listAllThrowStatements(new File(args[0]));
 
     	ExceptionVisitor.listAllThrows(new File(args[0]));
-    	
-  
-
-       ExceptionVisitor.listClassesDerivedFromException(new File(args[0]));
+    	ExceptionVisitor.listClassesDerivedFromException(new File(args[0]));
     }
 }

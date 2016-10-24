@@ -174,7 +174,7 @@ public class ExceptionVisitor {
                     @Override
                     public void visit(ThrowStmt n, Object arg) {
                         super.visit(n, arg);
-    	       			DatabaseExceptionEntry entry = new DatabaseExceptionEntry(projectDir.getName(), "", "not implemented", "throws", file.getPath(), n.getBegin().line,
+    	       			DatabaseExceptionEntry entry = new DatabaseExceptionEntry(projectDir.getName(), "", "not implemented", "throw", file.getPath(), n.getBegin().line,
                     			n.getEnd().line, n.toString());
     					dbManager.addObject(entry);
                         System.out.println("Throw: [L " + n.getBegin().line + "] ");
