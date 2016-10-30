@@ -1,9 +1,9 @@
 package ch.unibe.inf.scg_seminar_exceptions;
 
 import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileReader;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.util.ArrayList;
 
 public class JavaExceptionNames {
@@ -11,11 +11,11 @@ public class JavaExceptionNames {
 	public ArrayList<String> getExceptionNamesFrom(String fileName) {
 		ArrayList<String> exceptionNames = new ArrayList<String>();
 		
-		ClassLoader classLoader = getClass().getClassLoader();
-		File file = new File(classLoader.getResource(fileName).getFile());
+		InputStream in = ClassLoader.getSystemClassLoader().getResourceAsStream(fileName);
+
 
 	    try {
-			BufferedReader br = new BufferedReader(new FileReader(file));
+			BufferedReader br = new BufferedReader(new InputStreamReader(in, "UTF-8"));
 		    String line;
 		    while ((line = br.readLine()) != null) {
 		       exceptionNames.add(line);
