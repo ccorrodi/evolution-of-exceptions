@@ -26,6 +26,7 @@
       </manifest>
     </archive>
   </configuration>
+
 </plugin>
             <plugin>
             <groupId>org.apache.maven.plugins</groupId>
@@ -37,6 +38,15 @@
             </configuration>
         </plugin>
   </plugins>
+  <resources>
+      <resource>
+        <directory>src/resources</directory>
+        <includes>
+          <include>*.txt</include>
+        </includes>
+      </resource>
+    </resources>
+  
 </build>
 
   <dependencies>
@@ -52,12 +62,15 @@
 	    <scope>compile</scope>
 	    <version>2.5.1</version>
 	</dependency>
-	<!-- https://mvnrepository.com/artifact/org.xerial/sqlite-jdbc -->
-	<dependency>
-	    <groupId>org.xerial</groupId>
-	    <artifactId>sqlite-jdbc</artifactId>
-	    <version>3.14.2.1</version>
-	</dependency>
+<!-- https://mvnrepository.com/artifact/org.postgresql/postgresql -->
+<dependency>
+    <groupId>org.postgresql</groupId>
+    <artifactId>postgresql</artifactId>
+    <version>9.4.1211.jre7</version>
+</dependency>
+
+
+
 	
   </dependencies>
 </project>

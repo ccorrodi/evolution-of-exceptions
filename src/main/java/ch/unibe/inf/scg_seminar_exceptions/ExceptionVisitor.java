@@ -1,20 +1,13 @@
 package ch.unibe.inf.scg_seminar_exceptions;
 
 import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.PrintWriter;
-import java.io.UnsupportedEncodingException;
-import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.regex.Pattern;
 
 import com.github.javaparser.JavaParser;
-import com.github.javaparser.ast.Node;
 import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
 import com.github.javaparser.ast.body.MethodDeclaration;
-import com.github.javaparser.ast.expr.MethodCallExpr;
 import com.github.javaparser.ast.stmt.ReturnStmt;
-import com.github.javaparser.ast.stmt.Statement;
 import com.github.javaparser.ast.stmt.ThrowStmt;
 import com.github.javaparser.ast.stmt.TryStmt;
 import com.github.javaparser.ast.visitor.VoidVisitorAdapter;
@@ -39,7 +32,7 @@ public class ExceptionVisitor {
         	       			DatabaseExceptionEntry entry = new DatabaseExceptionEntry(projectDir.getName(), n.getName(), "not implemented", "throws", file.getPath(), n.getBegin().line,
                         			n.getEnd().line, n.toString());
         					dbManager.addObject(entry);
-                            System.out.println("Throws: " + n.getName());
+                            //System.out.println("Throws: " + n.getName());
                         }
                     }
                 }.visit(JavaParser.parse(file), null);
@@ -106,14 +99,14 @@ public class ExceptionVisitor {
 	       			DatabaseExceptionEntry entry = new DatabaseExceptionEntry(projectDir.getName(), "not implemented", "unchecked exception class", hierarchieEntry);
 					dbManager.addObject(entry);
 	       		
-					System.out.println("Unchecked Exception: " + hierarchieEntry.getClassName());
+					//System.out.println("Unchecked Exception: " + hierarchieEntry.getClassName());
 					break;
 	       		} else if( checkedExceptionNames.contains(tmp.getClassName()) ) {
 	       			
 	       			DatabaseExceptionEntry entry = new DatabaseExceptionEntry(projectDir.getName(), "not implemented", "checked exception class", hierarchieEntry);
 					dbManager.addObject(entry);
 					
-		    		System.out.println("Checked Exception: " + hierarchieEntry.getClassName());
+		    		//System.out.println("Checked Exception: " + hierarchieEntry.getClassName());
 		    		break;
 	       		}
 	    	}
@@ -133,7 +126,7 @@ public class ExceptionVisitor {
                     			n.getEnd().line, n.toString());
     					dbManager.addObject(entry);
                         
-                        System.out.println("Try-catch: [L " + n.getBegin().line + "] ");
+                       // System.out.println("Try-catch: [L " + n.getBegin().line + "] ");
                     }
                 }.visit(JavaParser.parse(file), null);
             } catch (Exception e) {
@@ -156,7 +149,7 @@ public class ExceptionVisitor {
                         			n.getEnd().line, n.toString());
         					dbManager.addObject(entry);
         					
-                            System.out.println("Return null: [L " + n.getBegin().line + "] " );
+                           // System.out.println("Return null: [L " + n.getBegin().line + "] " );
                         }
                     }
                 }.visit(JavaParser.parse(file), null);
@@ -177,7 +170,7 @@ public class ExceptionVisitor {
     	       			DatabaseExceptionEntry entry = new DatabaseExceptionEntry(projectDir.getName(), "", "not implemented", "throw", file.getPath(), n.getBegin().line,
                     			n.getEnd().line, n.toString());
     					dbManager.addObject(entry);
-                        System.out.println("Throw: [L " + n.getBegin().line + "] ");
+                      //  System.out.println("Throw: [L " + n.getBegin().line + "] ");
                     }
                 }.visit(JavaParser.parse(file), null);
             } catch (Exception e) {
