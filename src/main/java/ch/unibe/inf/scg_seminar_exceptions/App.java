@@ -7,9 +7,9 @@ import java.io.File;
 public class App 
 {    
     public static void main( String[] args ) throws Exception
-    {       
-    	
+    {      
     	DatabaseManager dbManager = DatabaseManager.getInstance();
+    	System.out.println(args.length);
     	dbManager.setVersion(args[1], args[2], args[3]);
     
         ExceptionVisitor.listAllReturnNullStatements(new File(args[0]));        

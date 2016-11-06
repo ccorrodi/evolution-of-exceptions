@@ -9,6 +9,7 @@ cd github-projects
 while read current_repo; do
 	echo $current_repo
 
+	cd $home_dir/github-projects
 	git clone $current_repo
 
 	basename=$(basename $current_repo)
@@ -31,7 +32,7 @@ while read current_repo; do
 			cd $home_dir/github-projects/$foldername
 			git checkout ${last_checkout[1]}
 			cd $home_dir
-		 	java -jar target/scg-seminar-exceptions-0.0.1-SNAPSHOT-jar-with-dependencies.jar $home_dir/github-projects/$foldername ${last_checkout[0]} ${last_checkout[1]} $foldername
+		  java -jar target/scg-seminar-exceptions-0.0.1-SNAPSHOT-jar-with-dependencies.jar $home_dir/github-projects/$foldername ${last_checkout[0]} ${last_checkout[1]} $foldername
 			#run index java
 			last_checkout=(${line//:/ })
 		fi
