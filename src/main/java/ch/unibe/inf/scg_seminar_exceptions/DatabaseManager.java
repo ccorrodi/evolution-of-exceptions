@@ -3,6 +3,7 @@ package ch.unibe.inf.scg_seminar_exceptions;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Timestamp;
@@ -54,13 +55,13 @@ public class DatabaseManager {
 		try {
 			openDbConnection();
 			
-			/*Statement queryStmt = connection.createStatement();
+			Statement queryStmt = connection.createStatement();
 			
 			ResultSet rs = queryStmt.executeQuery("SELECT id FROM projects WHERE project_name = '" + project + "';");
 			while(rs.next()) {
 				project_id = rs.getInt("id");
 				return;
-			}*/
+			}
 			PreparedStatement statement = connection.prepareStatement("insert into projects (project_name, parser_version) values(?,?)", Statement.RETURN_GENERATED_KEYS);
 			statement.setString(1, project);
 			statement.setString(2, getClass().getPackage().getImplementationVersion());
