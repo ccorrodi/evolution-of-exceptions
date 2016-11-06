@@ -40,7 +40,7 @@ public class DatabaseManager {
         	try {
             	Class.forName("org.postgresql.Driver");
 
-            	dbManagerInstance.createTable();
+            	dbManagerInstance.createTables();
         	} catch (Exception e) {
 				// TODO: handle exception
 			}
@@ -79,7 +79,7 @@ public class DatabaseManager {
 		}
 	}
 	
-    public void createTable() throws Exception{
+    public void createTables() throws Exception{
    	 // load the sqlite-JDBC driver using the current class loader
     	openDbConnection();
        Statement statement = connection.createStatement();
@@ -89,26 +89,34 @@ public class DatabaseManager {
        {
 
 
-         //statement.executeUpdate("drop table if exists exceptions");
-         statement.executeUpdate("create table if not exists exceptions (" 
-         		+ "project_name TEXT,"
-        		+ "commitHash TEXT,"
-         		+ "timeStamp TEXT,"
-         		+ "class_name TEXT,"
-        		+ "path TEXT,"
-         		+ "type TEXT,"
-         		+ "start_line INTEGER,"
-         		+ "end_line INTEGER,"
-        		+ "content TEXT)");
-//         statement.executeUpdate("insert into person values(1, 'leo')");
-//         statement.executeUpdate("insert into person values(2, 'yui')");
-//         ResultSet rs = statement.executeQuery("select * from exeptions");
-//         while(rs.next())
-//         {
-//           // read the result set
-//           System.out.println("name = " + rs.getString("name"));
-//           System.out.println("id = " + rs.getInt("id"));
-//         }
+    	   statement.execute("create table if not exists projects ("
+    	   		+ "id SERIAL PRIMARY KEY,"
+    	   		+ "project_name TEXT,"
+    	   		+ "folder TEXT,"
+    	   		+ "parse_date TIMESTAMP,"
+    	   		+ "parser_version TEXT");
+    	   
+    	   statement.execute("create table if not exists commits ("
+    	   		+ "id SERIAL PRIMARY KEY,"
+    	   		+ "project_id INTEGER,"
+    	   		+ "commit_hash TEXT,"
+    	   		+ "commit_timestamp TIMESTAMP");
+    	   
+    	   statement.execute("create table if not exists exception_classes ("
+    	   		+ "commit_id INTEGER,"
+    	   		+ "source TEXT,"
+    	   		+ "name TEXT,"
+    	   		+ "path TEXT,"
+    	   		+ "type TEXT");
+    	   
+    	   statement.execute("create table if not trycatchs ("
+    			+ "id SERIAL PRIMARY KEY,"
+    	   		+ "commit_id INTEGER,"
+    	   		+ "path TEXT,"
+    	   		+ "start_line INTEGER,"
+    	   		+ "end_line INTEGER,"
+    	   		+ "source TEXT");
+
        }
        catch(SQLException e)
        {
