@@ -29,9 +29,8 @@ public class ExceptionVisitor {
                         super.visit(n, arg);
                         Pattern pattern = Pattern.compile(".*throws.*", Pattern.DOTALL);
                         if(pattern.matcher(n.toString()).matches()){
-        	       			DatabaseExceptionEntry entry = new DatabaseExceptionEntry(projectDir.getName(), n.getName(), "not implemented", "throws", file.getPath(), n.getBegin().line,
-                        			n.getEnd().line, n.toString());
-        					dbManager.addObject(entry);
+     
+        					dbManager.addThrowss(file.getPath(), n.getBegin().line, n.getEnd().line, n.toString());
                             //System.out.println("Throws: " + n.getName());
                         }
                     }
@@ -96,15 +95,12 @@ public class ExceptionVisitor {
 	    		tmp = tmp.next();
 	       		if(uncheckedExceptionNames.contains(tmp.getClassName())){
 	       			
-	       			DatabaseExceptionEntry entry = new DatabaseExceptionEntry(projectDir.getName(), "not implemented", "unchecked exception class", hierarchieEntry);
-					dbManager.addObject(entry);
+					dbManager.addExceptionClass(hierarchieEntry.getFile().getPath(), hierarchieEntry.getClassName(), "unchecked", hierarchieEntry.getNode().toString());
 	       		
 					//System.out.println("Unchecked Exception: " + hierarchieEntry.getClassName());
 					break;
 	       		} else if( checkedExceptionNames.contains(tmp.getClassName()) ) {
-	       			
-	       			DatabaseExceptionEntry entry = new DatabaseExceptionEntry(projectDir.getName(), "not implemented", "checked exception class", hierarchieEntry);
-					dbManager.addObject(entry);
+	       			dbManager.addExceptionClass(hierarchieEntry.getFile().getPath(), hierarchieEntry.getClassName(), "checked", hierarchieEntry.getNode().toString());
 					
 		    		//System.out.println("Checked Exception: " + hierarchieEntry.getClassName());
 		    		break;
@@ -121,10 +117,8 @@ public class ExceptionVisitor {
                     @Override
                     public void visit(TryStmt n, Object arg) {
                         super.visit(n, arg);
-                        
-    	       			DatabaseExceptionEntry entry = new DatabaseExceptionEntry(projectDir.getName(), "", "not implemented", "try-catch-block", file.getPath(), n.getBegin().line,
-                    			n.getEnd().line, n.toString());
-    					dbManager.addObject(entry);
+
+    					dbManager.addTryCatch(file.getPath(), n.getBegin().line, n.getEnd().line, n.toString());
                         
                        // System.out.println("Try-catch: [L " + n.getBegin().line + "] ");
                     }
@@ -145,9 +139,8 @@ public class ExceptionVisitor {
                         super.visit(n, arg);
                         Pattern pattern = Pattern.compile(".*null;", Pattern.DOTALL);
                         if(pattern.matcher(n.toString()).matches()){
-        	       			DatabaseExceptionEntry entry = new DatabaseExceptionEntry(projectDir.getName(), "", "not implemented", "return null", file.getPath(), n.getBegin().line,
-                        			n.getEnd().line, n.toString());
-        					dbManager.addObject(entry);
+
+        					dbManager.addReturnNull(file.getPath(), n.getBegin().line, n.toString());
         					
                            // System.out.println("Return null: [L " + n.getBegin().line + "] " );
                         }
@@ -167,9 +160,8 @@ public class ExceptionVisitor {
                     @Override
                     public void visit(ThrowStmt n, Object arg) {
                         super.visit(n, arg);
-    	       			DatabaseExceptionEntry entry = new DatabaseExceptionEntry(projectDir.getName(), "", "not implemented", "throw", file.getPath(), n.getBegin().line,
-                    			n.getEnd().line, n.toString());
-    					dbManager.addObject(entry);
+
+                        dbManager.addThrow(file.getPath(), n.getBegin().line, ((ClassOrInterfaceDeclaration)n.getChildrenNodes().get(0)).getName(), n.toString());
                       //  System.out.println("Throw: [L " + n.getBegin().line + "] ");
                     }
                 }.visit(JavaParser.parse(file), null);

@@ -1,11 +1,11 @@
 package ch.unibe.inf.scg_seminar_exceptions;
 
 import java.sql.Connection;
-import java.sql.Date;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.sql.Timestamp;
 
 public class DatabaseManager {
 	
@@ -14,6 +14,8 @@ public class DatabaseManager {
 	private static String timestamp;
 	private static String commit;
 	private static String project;
+	private static long project_id;
+	private static long commit_id;
 	
 	public DatabaseManager() {
         // create a database connection
@@ -47,76 +49,196 @@ public class DatabaseManager {
         }
         return dbManagerInstance;
 	}
-
-	public void addObject(DatabaseExceptionEntry entry) {
-		
-
+	
+	public void addProject() {
 		try {
 			openDbConnection();
 			
-			PreparedStatement statement = connection.prepareStatement("insert into exceptions (project_name, commitHash, timeStamp, class_name, path, type, start_line, end_line, content) values(?,?,?,?,?,?,?,?,?)");
+			/*Statement queryStmt = connection.createStatement();
 			
-			statement.setQueryTimeout(30);  // set timeout to 30 sec.
-			
-			
+			ResultSet rs = queryStmt.executeQuery("SELECT id FROM projects WHERE project_name = '" + project + "';");
+			while(rs.next()) {
+				project_id = rs.getInt("id");
+				return;
+			}*/
+			PreparedStatement statement = connection.prepareStatement("insert into projects (project_name, parser_version) values(?,?)", Statement.RETURN_GENERATED_KEYS);
 			statement.setString(1, project);
-			statement.setString(2, commit);
-			statement.setString(3, timestamp);
-			statement.setString(4, entry.getClassName());
-			statement.setString(5, entry.getPathToFile());
-			statement.setString(6, entry.getType());
-			statement.setInt(7, entry.getStart_line());
-			statement.setInt(8, entry.getEnd_line());
-			statement.setString(9, entry.getContent());
-			
+			statement.setString(2, getClass().getPackage().getImplementationVersion());
 			statement.execute();
 			
-
+			statement.getGeneratedKeys().next();
+			project_id = statement.getGeneratedKeys().getLong(1);
 			closeDbConnection();
-		} catch (SQLException e) {
-			// TODO Auto-generated catch block
+		} catch (Exception e) {
 			e.printStackTrace();
 		}
 	}
 	
-    public void createTables() throws Exception{
-   	 // load the sqlite-JDBC driver using the current class loader
-    	openDbConnection();
-       Statement statement = connection.createStatement();
-       statement.setQueryTimeout(30);  // set timeout to 30 sec.
+	public void addCommit() {
+		try {
+			openDbConnection();
+			PreparedStatement statement = connection.prepareStatement("insert into commits (project_id, commit_hash, commit_timestamp) values(?,?,?)", Statement.RETURN_GENERATED_KEYS);
+			statement.setLong(1, project_id);
+			statement.setString(2, commit);
+			
+			statement.setTimestamp(3, new Timestamp((long)Integer.parseInt(timestamp)*1000));
+			statement.execute();
+			statement.getGeneratedKeys().next();
+			commit_id = statement.getGeneratedKeys().getLong(1);
+			closeDbConnection();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+	
+	public void addReturnNull(String path, int line, String source) {
+		try {
+			openDbConnection();
+			PreparedStatement statement = connection.prepareStatement("insert into returnnull (commit_id, path, line, source) values(?,?,?,?)");
+			statement.setLong(1, commit_id);
+			statement.setString(2, path);
+			statement.setInt(3, line);
+			statement.setString(4, source);
+			statement.execute();
+			
+			closeDbConnection();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+	
+	public void addExceptionClass(String path, String name, String type, String source) {
+		try {
+			openDbConnection();
+			PreparedStatement statement = connection.prepareStatement("insert into exception_classes (commit_id, path, name, source,type) values(?,?,?,?,?)");
+			statement.setLong(1, commit_id);
+			statement.setString(2, path);
+			statement.setString(3, name);
+			statement.setString(4, source);
+			statement.setString(5, type);
+			statement.execute();
+			
+			closeDbConnection();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+	
+	public void addThrowss(String path, int start_line, int end_line, String source) {
+		try {
+
+			openDbConnection();
+			PreparedStatement statement = connection.prepareStatement("insert into throwss (commit_id, path, start_line, end_line, source) values(?,?,?,?,?)");
+			statement.setLong(1, commit_id);
+			statement.setString(2, path);
+			statement.setInt(3, start_line);
+			statement.setInt(4, end_line);
+			statement.setString(5, source);
+			statement.execute();
+			
+			closeDbConnection();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+	
+	public void addTryCatch(String path, int start_line, int end_line, String source) {
+		try {
+			openDbConnection();
+			PreparedStatement statement = connection.prepareStatement("insert into trycatchs (commit_id, path, start_line, end_line, source) values(?,?,?,?,?)");
+			statement.setLong(1, commit_id);
+			statement.setString(2, path);
+			statement.setInt(3, start_line);
+			statement.setInt(4, end_line);
+			statement.setString(5, source);
+			statement.execute();
+			
+			closeDbConnection();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+	
+	public void addThrow(String path, int start_line, String exception_class, String source ) {
+		
+		try {
+			openDbConnection();
+			PreparedStatement statement = connection.prepareStatement("insert into trycatchs (commit_id, exception_class, path, start_line, source) values(?,?,?,?,?)");
+			statement.setLong(1, commit_id);
+			statement.setString(2, exception_class);
+			statement.setString(3, path);
+			statement.setInt(4, start_line);
+			statement.setString(5, source);
+			statement.execute();
+			
+			closeDbConnection();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+	
+	public void createTables() throws Exception{
+		// load the sqlite-JDBC driver using the current class loader
+		openDbConnection();
+    	Statement statement = connection.createStatement();
+    	statement.setQueryTimeout(30);  // set timeout to 30 sec.
        
-       try
-       {
-
-
-    	   statement.execute("create table if not exists projects ("
+    	try
+    	{
+    		statement.execute("create table if not exists projects ("
     	   		+ "id SERIAL PRIMARY KEY,"
     	   		+ "project_name TEXT,"
-    	   		+ "folder TEXT,"
-    	   		+ "parse_date TIMESTAMP,"
-    	   		+ "parser_version TEXT");
+    	   		+ "timestamp TIMESTAMP default current_timestamp,"
+    	   		+ "parser_version TEXT)");
     	   
-    	   statement.execute("create table if not exists commits ("
+    		statement.execute("create table if not exists commits ("
     	   		+ "id SERIAL PRIMARY KEY,"
     	   		+ "project_id INTEGER,"
     	   		+ "commit_hash TEXT,"
-    	   		+ "commit_timestamp TIMESTAMP");
+    	   		+ "commit_timestamp TIMESTAMP)");
     	   
-    	   statement.execute("create table if not exists exception_classes ("
+    		statement.execute("create table if not exists exception_classes ("
     	   		+ "commit_id INTEGER,"
     	   		+ "source TEXT,"
     	   		+ "name TEXT,"
     	   		+ "path TEXT,"
-    	   		+ "type TEXT");
+    	   		+ "type TEXT)");
     	   
-    	   statement.execute("create table if not trycatchs ("
+    		statement.execute("create table if not exists trycatchs ("
     			+ "id SERIAL PRIMARY KEY,"
     	   		+ "commit_id INTEGER,"
     	   		+ "path TEXT,"
     	   		+ "start_line INTEGER,"
     	   		+ "end_line INTEGER,"
-    	   		+ "source TEXT");
-
+    	   		+ "source TEXT)");
+    	   
+    		statement.execute("create table if not exists throwss ("
+    	   		+ "id SERIAL PRIMARY KEY,"
+    	   		+ "exception_class_id INTEGER,"
+    	   		+ "commit_id INTEGER,"
+    	   		+ "path TEXT,"
+    	   		+ "start_line INTEGER,"
+    	   		+ "end_line INTEGER,"
+    	   		+ "source TEXT)");
+    		
+    		statement.execute("create table if not exists throws ("
+    				+ "id SERIAL PRIMARY KEY,"
+    				+ "exception_class TEXT,"
+    				+ "path TEXT,"
+    				+ "start_line INTEGER,"
+    				+ "source TEXT)");
+    	   
+    		statement.execute("create table if not exists returnnull ("
+       	   		+ "id SERIAL PRIMARY KEY,"
+       	   		+ "commit_id INTEGER,"
+       	   		+ "path TEXT,"
+       	   		+ "line INTEGER,"
+       	   		+ "source TEXT)");
+    	   
+    		statement.execute("create table if not exists trycatchsexceptionclasses ("
+    	   		+ "trycatch_id INTEGER,"
+    	   		+ "exception_class_id INTEGER)");
+    	   
        }
        catch(SQLException e)
        {
