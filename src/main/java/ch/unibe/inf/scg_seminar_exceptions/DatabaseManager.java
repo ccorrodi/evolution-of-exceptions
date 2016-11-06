@@ -125,7 +125,7 @@ public class DatabaseManager {
 		}
 	}
 	
-	public void addThrowss(String path, int start_line, int end_line, String source) {
+	public void addThrows(String path, int start_line, int end_line, String source) {
 		try {
 
 			openDbConnection();
@@ -160,16 +160,15 @@ public class DatabaseManager {
 		}
 	}
 	
-	public void addThrow(String path, int start_line, String exception_class, String source ) {
+	public void addThrow(String path, int start_line, String source ) {
 		
 		try {
 			openDbConnection();
-			PreparedStatement statement = connection.prepareStatement("insert into throws (commit_id, exception_class, path, start_line, source) values(?,?,?,?,?)");
+			PreparedStatement statement = connection.prepareStatement("insert into throws (commit_id, path, start_line, source) values(?,?,?,?)");
 			statement.setLong(1, commit_id);
-			statement.setString(2, exception_class);
-			statement.setString(3, path);
-			statement.setInt(4, start_line);
-			statement.setString(5, source);
+			statement.setString(2, path);
+			statement.setInt(3, start_line);
+			statement.setString(4, source);
 			statement.execute();
 			
 			closeDbConnection();

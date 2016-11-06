@@ -1,7 +1,11 @@
 
 -- number of return null per commit
 SELECT count(id), commit_id
-	FROM returnnull GROUP BY commit_id;
+	FROM returnnull GROUP BY commit_id ORDER BY commit_id;
+
+-- number of throws per commit
+SELECT count(id), commit_id
+	FROM throws GROUP BY commit_id ORDER BY commit_id;
 
 --
 SELECT count(Name), commit_id
@@ -12,8 +16,30 @@ SELECT count(Name), commit_id, type, commit_timestamp
 	FROM exception_classes JOIN commits ON exception_classes.commit_id = commits.id
 	GROUP BY commit_id, commit_timestamp, type ORDER BY commit_id, type;
 
-
 --
 SELECT count(throwss.id), commit_id, commit_timestamp
 	FROM throwss JOIN commits ON throwss.commit_id = commits.id
     GROUP BY commit_id, commit_timestamp ORDER BY commit_id;
+
+--
+SELECT count(throws.id), commit_id, commit_timestamp
+	FROM throws JOIN commits ON throws.commit_id = commits.id
+    GROUP BY commit_id, commit_timestamp ORDER BY commit_id;
+
+-- average length of try catch
+SELECT commit_id, AVG(length(source)) FROM trycatchs GROUP BY commit_id;
+
+-- average length of catch
+SELECT commit_id, avg(length(SUBSTRING(source FROM '(?<=catch \(.[^\)]*\) {).[^}]*(?=})'))) from trycatchs
+	GROUP BY commit_id
+  ORDER BY commit_id;
+
+-- count exceptions by name
+SELECT count(id), commit_id, SUBSTRING(source FROM '(?<=catch \().[^\)]*(?=\s)') as exception_name from trycatchs
+	GROUP BY commit_id, exception_name
+	ORDER BY commit_id, exception_name;
+
+-- count exception vs other
+SELECT count(id), commit_id, SUBSTRING(source FROM '(?<=catch \().[^\)]*(?=\s)') LIKE 'Exception' as is_exception from trycatchs
+	GROUP BY commit_id, is_exception
+  ORDER BY commit_id, is_exception;

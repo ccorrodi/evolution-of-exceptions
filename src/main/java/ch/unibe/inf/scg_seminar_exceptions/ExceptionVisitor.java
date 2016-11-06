@@ -30,7 +30,7 @@ public class ExceptionVisitor {
                         Pattern pattern = Pattern.compile(".*throws.*", Pattern.DOTALL);
                         if(pattern.matcher(n.toString()).matches()){
      
-        					dbManager.addThrowss(file.getPath(), n.getBegin().line, n.getEnd().line, n.toString());
+        					dbManager.addThrows(file.getPath(), n.getBegin().line, n.getEnd().line, n.toString());
                             //System.out.println("Throws: " + n.getName());
                         }
                     }
@@ -160,8 +160,8 @@ public class ExceptionVisitor {
                     @Override
                     public void visit(ThrowStmt n, Object arg) {
                         super.visit(n, arg);
-
-                        dbManager.addThrow(file.getPath(), n.getBegin().line, ((ClassOrInterfaceDeclaration)n.getChildrenNodes().get(0)).getName(), n.toString());
+                        //TODO cast is buggy
+                        dbManager.addThrow(file.getPath(), n.getBegin().line, n.toString());
                       //  System.out.println("Throw: [L " + n.getBegin().line + "] ");
                     }
                 }.visit(JavaParser.parse(file), null);
