@@ -1,0 +1,19 @@
+
+-- number of return null per commit
+SELECT count(id), commit_id
+	FROM returnnull GROUP BY commit_id;
+
+--
+SELECT count(Name), commit_id
+	FROM exception_classes GROUP BY commit_id;
+
+--
+SELECT count(Name), commit_id, type, commit_timestamp
+	FROM exception_classes JOIN commits ON exception_classes.commit_id = commits.id
+	GROUP BY commit_id, commit_timestamp, type ORDER BY commit_id, type;
+
+
+--
+SELECT count(throwss.id), commit_id, commit_timestamp
+	FROM throwss JOIN commits ON throwss.commit_id = commits.id
+    GROUP BY commit_id, commit_timestamp ORDER BY commit_id;

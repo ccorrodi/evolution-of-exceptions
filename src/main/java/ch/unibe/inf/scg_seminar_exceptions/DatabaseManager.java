@@ -164,7 +164,7 @@ public class DatabaseManager {
 		
 		try {
 			openDbConnection();
-			PreparedStatement statement = connection.prepareStatement("insert into trycatchs (commit_id, exception_class, path, start_line, source) values(?,?,?,?,?)");
+			PreparedStatement statement = connection.prepareStatement("insert into throws (commit_id, exception_class, path, start_line, source) values(?,?,?,?,?)");
 			statement.setLong(1, commit_id);
 			statement.setString(2, exception_class);
 			statement.setString(3, path);
@@ -199,6 +199,7 @@ public class DatabaseManager {
     	   		+ "commit_timestamp TIMESTAMP)");
     	   
     		statement.execute("create table if not exists exception_classes ("
+    			+ "id SERIAL PRIMARY KEY,"
     	   		+ "commit_id INTEGER,"
     	   		+ "source TEXT,"
     	   		+ "name TEXT,"
@@ -224,6 +225,7 @@ public class DatabaseManager {
     		
     		statement.execute("create table if not exists throws ("
     				+ "id SERIAL PRIMARY KEY,"
+    				+ "commit_id INTEGER,"
     				+ "exception_class TEXT,"
     				+ "path TEXT,"
     				+ "start_line INTEGER,"
