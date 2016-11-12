@@ -27,12 +27,10 @@ while read current_repo; do
 	while read -r line; do
 		current=(${line//:/ })
 		if $initial || ((${current[0]}<(last_checkout - 60*60*24*31*$interval_months))) ; then
-
-			cloc_out=$(cloc github-projects/elasticsearch/ --include-lang=Java --csv --csv-delimiter=';' --quiet)
-			locmetric=(${cloc_out//;/ })
-
 			initial=false
 			cd $home_dir/github-projects/$foldername
+			cloc_out=$(cloc ./ --include-lang=Java --csv --csv-delimiter=';' --quiet)
+			locmetric=(${cloc_out//;/ })
 			git checkout ${last_checkout[1]}
 			cd $home_dir
 			# path timestamp commithash foldername blanklines commentlines codelines
