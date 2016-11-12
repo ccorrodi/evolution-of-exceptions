@@ -29,9 +29,9 @@ while read current_repo; do
 		if $initial || ((${current[0]}<(last_checkout - 60*60*24*31*$interval_months))) ; then
 			initial=false
 			cd $home_dir/github-projects/$foldername
+			git checkout ${last_checkout[1]}
 			cloc_out=$(cloc ./ --include-lang=Java --csv --csv-delimiter=';' --quiet)
 			locmetric=(${cloc_out//;/ })
-			git checkout ${last_checkout[1]}
 			cd $home_dir
 			# path timestamp commithash foldername blanklines commentlines codelines
 		  java -jar target/scg-seminar-exceptions-0.0.1-SNAPSHOT-jar-with-dependencies.jar $home_dir/github-projects/$foldername ${last_checkout[0]} ${last_checkout[1]} $foldername ${locmetric[16]} ${locmetric[17]} ${locmetric[18]}

@@ -4,6 +4,9 @@ CREATE SCHEMA public;
 GRANT ALL ON SCHEMA public TO postgres;
 GRANT ALL ON SCHEMA public TO public;
 
+--
+SELECT * FROM trycatchs JOIN tcbexceptions ON trycatchs.id = tcbexceptions.tcb_id;
+
 -- number of return null per commit
 SELECT count(id), commit_id
 	FROM returnnull GROUP BY commit_id ORDER BY commit_id;

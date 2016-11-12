@@ -199,7 +199,7 @@ public class DatabaseManager {
 			openDbConnection();
 			PreparedStatement statement = connection.prepareStatement("insert into throws "
 					+ "(commit_id, path, start_line, source, exception_class, userdefined)"
-					+ " values(?,?,?,?,?)");
+					+ " values(?,?,?,?,?,?)");
 			statement.setLong(1, commit_id);
 			statement.setString(2, path);
 			statement.setInt(3, start_line);
