@@ -22,17 +22,21 @@ while read current_repo; do
 
 	echo "----"
 	##set -f
-
 	initial=true
 	last_checkout=0
 	while read -r line; do
 		current=(${line//:/ })
 		if $initial || ((${current[0]}<(last_checkout - 60*60*24*31*$interval_months))) ; then
+
+			cloc_out=$(cloc github-projects/elasticsearch/ --include-lang=Java --csv --csv-delimiter=';' --quiet)
+			locmetric=(${cloc_out//;/ })
+
 			initial=false
 			cd $home_dir/github-projects/$foldername
 			git checkout ${last_checkout[1]}
 			cd $home_dir
-		  java -jar target/scg-seminar-exceptions-0.0.1-SNAPSHOT-jar-with-dependencies.jar $home_dir/github-projects/$foldername ${last_checkout[0]} ${last_checkout[1]} $foldername
+			# path timestamp commithash foldername blanklines commentlines codelines
+		  java -jar target/scg-seminar-exceptions-0.0.1-SNAPSHOT-jar-with-dependencies.jar $home_dir/github-projects/$foldername ${last_checkout[0]} ${last_checkout[1]} $foldername ${locmetric[16]} ${locmetric[17]} ${locmetric[18]}
 			#run index java
 			last_checkout=(${line//:/ })
 		fi

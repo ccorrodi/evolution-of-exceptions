@@ -12,15 +12,17 @@ public class DatabaseManager {
 	
 	private static DatabaseManager dbManagerInstance = null;
 	private static Connection connection = null;
-	private static String timestamp;
-	private static String commit;
-	private static String project;
-	private static long project_id;
-	private static long commit_id;
+	private String timestamp;
+	private String commit;
+	private String project;
+	private long project_id;
+	private long commit_id;
+	private int blankLines;
+	private int commentLines;
+	private int codeLines;
 	
 	public DatabaseManager() {
         // create a database connection
-	       
 	}
 	
 	private void openDbConnection() throws SQLException{
@@ -78,11 +80,16 @@ public class DatabaseManager {
 	public void addCommit() {
 		try {
 			openDbConnection();
-			PreparedStatement statement = connection.prepareStatement("insert into commits (project_id, commit_hash, commit_timestamp) values(?,?,?)", Statement.RETURN_GENERATED_KEYS);
+			PreparedStatement statement = connection.prepareStatement("insert into commits (project_id, "
+					+ "commit_hash, commit_timestamp, blank_lines, comment_lines, "
+					+ "code_lines) values(?,?,?,?,?,?)", Statement.RETURN_GENERATED_KEYS);
 			statement.setLong(1, project_id);
 			statement.setString(2, commit);
 			
 			statement.setTimestamp(3, new Timestamp((long)Integer.parseInt(timestamp)*1000));
+			statement.setInt(4, blankLines);
+			statement.setInt(5, commentLines);
+			statement.setInt(6, codeLines);
 			statement.execute();
 			statement.getGeneratedKeys().next();
 			commit_id = statement.getGeneratedKeys().getLong(1);
@@ -95,7 +102,8 @@ public class DatabaseManager {
 	public void addReturnNull(String path, int line, String source) {
 		try {
 			openDbConnection();
-			PreparedStatement statement = connection.prepareStatement("insert into returnnull (commit_id, path, line, source) values(?,?,?,?)");
+			PreparedStatement statement = connection.prepareStatement("insert into returnnull (commit_id, "
+					+ "path, line, source) values(?,?,?,?)");
 			statement.setLong(1, commit_id);
 			statement.setString(2, path);
 			statement.setInt(3, line);
@@ -111,12 +119,31 @@ public class DatabaseManager {
 	public void addExceptionClass(String path, String name, String type, String source) {
 		try {
 			openDbConnection();
-			PreparedStatement statement = connection.prepareStatement("insert into exception_classes (commit_id, path, name, source,type) values(?,?,?,?,?)");
+			PreparedStatement statement = connection.prepareStatement("insert into exception_classes (commit_id, "
+					+ "path, name, source,type) values(?,?,?,?,?)");
 			statement.setLong(1, commit_id);
 			statement.setString(2, path);
 			statement.setString(3, name);
 			statement.setString(4, source);
 			statement.setString(5, type);
+			statement.execute();
+			
+			closeDbConnection();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+	
+	public void addParserException(String path, String stacktrace, String type, String source) {
+		try {
+			openDbConnection();
+			PreparedStatement statement = connection.prepareStatement("insert into parser_exceptions (commit_id, "
+					+ "path, stacktrace,type, source) values(?,?,?,?,?)");
+			statement.setLong(1, commit_id);
+			statement.setString(2, path);
+			statement.setString(3, stacktrace);
+			statement.setString(4, type);
+			statement.setString(5, source);
 			statement.execute();
 			
 			closeDbConnection();
@@ -143,15 +170,42 @@ public class DatabaseManager {
 		}
 	}
 	
-	public void addTryCatch(String path, int start_line, int end_line, String source) {
+	public long addTryCatch(String path, int start_line, int end_line, String source) {
+		long id = 0;
 		try {
 			openDbConnection();
-			PreparedStatement statement = connection.prepareStatement("insert into trycatchs (commit_id, path, start_line, end_line, source) values(?,?,?,?,?)");
+			PreparedStatement statement = connection.prepareStatement("insert into trycatchs (commit_id, "
+					+ "path, start_line, end_line, source) values(?,?,?,?,?)", Statement.RETURN_GENERATED_KEYS);
 			statement.setLong(1, commit_id);
 			statement.setString(2, path);
 			statement.setInt(3, start_line);
 			statement.setInt(4, end_line);
 			statement.setString(5, source);
+			statement.execute();
+			statement.getGeneratedKeys().next();
+			id = statement.getGeneratedKeys().getLong(1);
+			closeDbConnection();
+			
+		} catch (Exception e) {
+			e.printStackTrace();
+		} 
+		
+		return id;
+	}
+	
+	public void addThrow(String path, int start_line, String source, String exceptionClass, boolean userdefined ) {
+		
+		try {
+			openDbConnection();
+			PreparedStatement statement = connection.prepareStatement("insert into throws "
+					+ "(commit_id, path, start_line, source, exception_class, userdefined)"
+					+ " values(?,?,?,?,?)");
+			statement.setLong(1, commit_id);
+			statement.setString(2, path);
+			statement.setInt(3, start_line);
+			statement.setString(4, source);
+			statement.setString(5, exceptionClass);
+			statement.setBoolean(6, userdefined);
 			statement.execute();
 			
 			closeDbConnection();
@@ -160,15 +214,15 @@ public class DatabaseManager {
 		}
 	}
 	
-	public void addThrow(String path, int start_line, String source ) {
-		
+	public void addTcbException(long tcb_id, String className, boolean userdefined) {
 		try {
 			openDbConnection();
-			PreparedStatement statement = connection.prepareStatement("insert into throws (commit_id, path, start_line, source) values(?,?,?,?)");
-			statement.setLong(1, commit_id);
-			statement.setString(2, path);
-			statement.setInt(3, start_line);
-			statement.setString(4, source);
+			PreparedStatement statement = connection.prepareStatement("insert into tcbexceptions "
+					+ "(tcb_id, class_name, userdefined)"
+					+ " values(?,?,?)");
+			statement.setLong(1, tcb_id);
+			statement.setString(2, className);
+			statement.setBoolean(3, userdefined);
 			statement.execute();
 			
 			closeDbConnection();
@@ -190,12 +244,28 @@ public class DatabaseManager {
     	   		+ "project_name TEXT,"
     	   		+ "timestamp TIMESTAMP default current_timestamp,"
     	   		+ "parser_version TEXT)");
+
+    		statement.execute("create table if not exists parser_exceptions ("
+        	   	+ "commit_id INTEGER,"
+        	   	+ "path TEXT,"
+        	   	+ "stacktrace TEXT,"
+        	   	+ "type TEXT,"
+        	   	+ "source TEXT)");
     	   
+    		statement.execute("create table if not exists tcbexceptions ("
+    			+ "id SERIAL PRIMARY KEY,"
+    			+ "tcb_id INTEGER,"
+    			+ "class_name TEXT,"
+    			+ "userdefined BOOLEAN)");
+    		
     		statement.execute("create table if not exists commits ("
     	   		+ "id SERIAL PRIMARY KEY,"
     	   		+ "project_id INTEGER,"
     	   		+ "commit_hash TEXT,"
-    	   		+ "commit_timestamp TIMESTAMP)");
+    	   		+ "commit_timestamp TIMESTAMP, "
+    	   		+ "blank_lines INTEGER,"
+    	   		+ "comment_lines INTEGER,"
+    	   		+ "code_lines INTEGER)");
     	   
     		statement.execute("create table if not exists exception_classes ("
     			+ "id SERIAL PRIMARY KEY,"
@@ -223,12 +293,13 @@ public class DatabaseManager {
     	   		+ "source TEXT)");
     		
     		statement.execute("create table if not exists throws ("
-    				+ "id SERIAL PRIMARY KEY,"
-    				+ "commit_id INTEGER,"
-    				+ "exception_class TEXT,"
-    				+ "path TEXT,"
-    				+ "start_line INTEGER,"
-    				+ "source TEXT)");
+    			+ "id SERIAL PRIMARY KEY,"
+    			+ "commit_id INTEGER,"
+    			+ "exception_class TEXT,"
+    			+ "path TEXT,"
+    			+ "start_line INTEGER,"
+    			+ "source TEXT,"
+    			+ "userdefined BOOLEAN)");
     	   
     		statement.execute("create table if not exists returnnull ("
        	   		+ "id SERIAL PRIMARY KEY,"
@@ -254,10 +325,13 @@ public class DatabaseManager {
        }
    }
 
-	public void setVersion(String timestamp, String commit, String project) {
+	public void setVersion(String timestamp, String commit, String project, String blankLines, String commentLines, String codeLines ) {
 		this.commit = commit;
 		this.timestamp = timestamp;
 		this.project = project;
+		this.blankLines = Integer.parseInt(blankLines);
+		this.commentLines = Integer.parseInt(commentLines);
+		this.codeLines = Integer.parseInt(codeLines);
 	}
 
 }

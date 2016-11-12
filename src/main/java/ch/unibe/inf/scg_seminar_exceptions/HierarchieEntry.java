@@ -1,12 +1,10 @@
 package ch.unibe.inf.scg_seminar_exceptions;
 
 import java.io.File;
-import java.util.ArrayList;
 import java.util.Iterator;
 
 import com.github.javaparser.ast.Node;
 import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
-import com.github.javaparser.ast.type.ClassOrInterfaceType;
 
 public class HierarchieEntry implements Iterator<HierarchieEntry>{
 	

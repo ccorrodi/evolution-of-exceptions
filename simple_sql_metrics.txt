@@ -1,3 +1,8 @@
+-- recreate database
+DROP SCHEMA public CASCADE;
+CREATE SCHEMA public;
+GRANT ALL ON SCHEMA public TO postgres;
+GRANT ALL ON SCHEMA public TO public;
 
 -- number of return null per commit
 SELECT count(id), commit_id
@@ -12,9 +17,9 @@ SELECT count(Name), commit_id
 	FROM exception_classes GROUP BY commit_id;
 
 --
-SELECT count(Name), commit_id, type, commit_timestamp
+SELECT count(Name), commit_id, type, commit_timestamp, commits.project_id
 	FROM exception_classes JOIN commits ON exception_classes.commit_id = commits.id
-	GROUP BY commit_id, commit_timestamp, type ORDER BY commit_id, type;
+	GROUP BY commits.project_id, commit_id, commit_timestamp, type ORDER BY project_id, commit_id, type;
 
 --
 SELECT count(throwss.id), commit_id, commit_timestamp
@@ -43,3 +48,7 @@ SELECT count(id), commit_id, SUBSTRING(source FROM '(?<=catch \().[^\)]*(?=\s)')
 SELECT count(id), commit_id, SUBSTRING(source FROM '(?<=catch \().[^\)]*(?=\s)') LIKE 'Exception' as is_exception from trycatchs
 	GROUP BY commit_id, is_exception
   ORDER BY commit_id, is_exception;
+
+--
+SELECT commit_id, SUBSTRING(source FROM '(?<=catch \(.*\{).*printStackTrace\(\)[^}]*(?=})') as todo from trycatchs
+  ORDER BY commit_id, todo;
