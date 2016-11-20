@@ -2,9 +2,11 @@ package ch.unibe.inf.scg_seminar_exceptions;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.List;
 
 import com.github.javaparser.JavaParser;
 import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
+import com.github.javaparser.ast.type.ClassOrInterfaceType;
 import com.github.javaparser.ast.visitor.VoidVisitorAdapter;
 
 public class ExceptionClassVisitor {
@@ -32,21 +34,26 @@ public class ExceptionClassVisitor {
 	                    }
 	                }.visit(JavaParser.parse(file), null);
 	            } catch (Exception e) {
+
+	        		e.printStackTrace();
 	            	dbManager.addParserException(path, e.toString(), "exception class", "");
 	            }
 	        }).explore(projectDir);       
 	        
 	        for (HierarchieEntry entry : classTree) {
 	        	try {
-	        		String parentClassName = ((ClassOrInterfaceDeclaration)entry.getNode()).getExtends().get(0).getName();
-
-	        		classTree.stream().filter(o -> o.getClassName().equals(parentClassName)).forEach(
-	        	            o -> {
-	        	            	entry.setParent(o);
-	        	            }
-	        	    );
-
+	        		List<ClassOrInterfaceType> extendTypes = ((ClassOrInterfaceDeclaration)entry.getNode()).getExtends();
+	 
+	        		for(ClassOrInterfaceType coit : extendTypes){
+			        	classTree.stream().filter(o -> o.getClassName().equals(coit.getName())).forEach(
+			        			o -> {
+			        				entry.setParent(o);
+			        	        }
+			        	);
+	        		}
+	        		
 	        	} catch (Exception e) {
+	        		e.printStackTrace();
 	        		dbManager.addParserException("build tree", e.toString(), "exception class", "");
 	        	}
 	        }

@@ -17,9 +17,9 @@ public class App
     	dbManager.addCommit();
     	
 //      ReturnNullVisitor.listAllReturnNullStatements(new File(args[0]));        
-    	TryCatchVisitor.listAllTryStatements(new File(args[0]));
+//    	TryCatchVisitor.listAllTryStatements(new File(args[0]));
 //    	ThrowVisitor.listAllThrowStatements(new File(args[0]));
 //    	ThrowsVisitor.listAllThrows(new File(args[0]));
-//    	ExceptionClassVisitor.listClassesDerivedFromException(new File(args[0]));
+    	ExceptionClassVisitor.listClassesDerivedFromException(new File(args[0]));
     }
 }
