@@ -24,23 +24,35 @@ public class TryCatchVisitor {
                     public void visit(TryStmt n, Object arg) {
                         super.visit(n, arg);
                         
-                        // add tc block to db
-    					long tcb_id = dbManager.addTryCatch(file.getPath(), n.getBegin().line, n.getEnd().line, n.toString());
+                        int loc_catch_finally = 0;
+    					
+    					// get finally
+    					if(n.getFinallyBlock() != null ) {
+    						loc_catch_finally = n.getFinallyBlock().getEnd().line - n.getFinallyBlock().getBegin().line;
+    					}
     					
                         // get the catch clause
                         List<CatchClause> catchClauses =  n.getCatchs();
-                        
+                       
+                        // get the type of the caught exceptions
+                        for(CatchClause cc : catchClauses) {
+                        	loc_catch_finally = loc_catch_finally + cc.getEnd().line - cc.getBegin().line;
+                        }
+
+                        // add tc block to db
+    					long tcb_id = dbManager.addTryCatch(file.getPath(), n.getBegin().line, n.getEnd().line, n.toString(), loc_catch_finally);
+                       
                         // get the type of the caught exceptions
                         for(CatchClause cc : catchClauses) {
                         	String className = cc.getParam().getType().toStringWithoutComments();
                         	dbManager.addTcbException(tcb_id, className, !javaExceptions.contains(className));
                         }
                         
-                       // System.out.println("Try-catch: [L " + n.getBegin().line + "] ");
                     }
                 }.visit(JavaParser.parse(file), null);
             } catch (Exception e) {
             	dbManager.addParserException(path, e.toString(), "try catch", "");
+            	e.printStackTrace();
             }
         }).explore(projectDir);
     }

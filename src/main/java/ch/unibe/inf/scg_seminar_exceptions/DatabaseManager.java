@@ -152,16 +152,41 @@ public class DatabaseManager {
 		}
 	}
 	
-	public void addThrows(String path, int start_line, int end_line, String source) {
+	public long addMethodThrowsDeclaration(String path, int start_line, int end_line, String source) {
+		long methodThrowsDeclarationId = 0;
 		try {
 
 			openDbConnection();
-			PreparedStatement statement = connection.prepareStatement("insert into throwss (commit_id, path, start_line, end_line, source) values(?,?,?,?,?)");
+			PreparedStatement statement = connection.prepareStatement("insert into method_throws_declarations "
+					+ "(commit_id, path, start_line, end_line, source) values(?,?,?,?,?)",
+					 Statement.RETURN_GENERATED_KEYS);
 			statement.setLong(1, commit_id);
 			statement.setString(2, path);
 			statement.setInt(3, start_line);
 			statement.setInt(4, end_line);
 			statement.setString(5, source);
+			statement.execute();
+			
+			statement.getGeneratedKeys().next();
+			methodThrowsDeclarationId = statement.getGeneratedKeys().getLong(1);
+			
+			closeDbConnection();
+		} catch (Exception e) {
+			e.printStackTrace();
+		} 
+		
+		return methodThrowsDeclarationId;
+	}
+	
+	public void addMethodThrowsDeclationType(long methodThrowsDeclarationId, String type, boolean userdefined) {
+		try {
+
+			openDbConnection();
+			PreparedStatement statement = connection.prepareStatement("insert into method_throws_declaration_types"
+					+ " (method_throws_declaration_id, type, userdefined) values(?,?,?)");
+			statement.setLong(1, methodThrowsDeclarationId);
+			statement.setString(2, type);
+			statement.setBoolean(3, userdefined);
 			statement.execute();
 			
 			closeDbConnection();
@@ -170,17 +195,19 @@ public class DatabaseManager {
 		}
 	}
 	
-	public long addTryCatch(String path, int start_line, int end_line, String source) {
+	
+	public long addTryCatch(String path, int start_line, int end_line, String source, int loc_catch_finally) {
 		long id = 0;
 		try {
 			openDbConnection();
 			PreparedStatement statement = connection.prepareStatement("insert into trycatchs (commit_id, "
-					+ "path, start_line, end_line, source) values(?,?,?,?,?)", Statement.RETURN_GENERATED_KEYS);
+					+ "path, start_line, end_line, source, loc_catch_finally) values(?,?,?,?,?,?)", Statement.RETURN_GENERATED_KEYS);
 			statement.setLong(1, commit_id);
 			statement.setString(2, path);
 			statement.setInt(3, start_line);
 			statement.setInt(4, end_line);
 			statement.setString(5, source);
+			statement.setInt(6, loc_catch_finally);
 			statement.execute();
 			statement.getGeneratedKeys().next();
 			id = statement.getGeneratedKeys().getLong(1);
@@ -232,7 +259,6 @@ public class DatabaseManager {
 	}
 	
 	public void createTables() throws Exception{
-		// load the sqlite-JDBC driver using the current class loader
 		openDbConnection();
     	Statement statement = connection.createStatement();
     	statement.setQueryTimeout(30);  // set timeout to 30 sec.
@@ -281,16 +307,22 @@ public class DatabaseManager {
     	   		+ "path TEXT,"
     	   		+ "start_line INTEGER,"
     	   		+ "end_line INTEGER,"
-    	   		+ "source TEXT)");
+    	   		+ "source TEXT,"
+    	   		+ "loc_catch_finally INTEGER)");
     	   
-    		statement.execute("create table if not exists throwss ("
+    		statement.execute("create table if not exists method_throws_declarations ("
     	   		+ "id SERIAL PRIMARY KEY,"
-    	   		+ "exception_class_id INTEGER,"
     	   		+ "commit_id INTEGER,"
     	   		+ "path TEXT,"
     	   		+ "start_line INTEGER,"
     	   		+ "end_line INTEGER,"
     	   		+ "source TEXT)");
+    		
+    		statement.execute("create table if not exists method_throws_declaration_types ("
+    				+ "id SERIAL PRIMARY KEY,"
+    				+ "method_throws_declaration_id INTEGER,"
+    				+ "type TEXT,"
+    				+ "userdefined BOOLEAN)");
     		
     		statement.execute("create table if not exists throws ("
     			+ "id SERIAL PRIMARY KEY,"
@@ -308,9 +340,9 @@ public class DatabaseManager {
        	   		+ "line INTEGER,"
        	   		+ "source TEXT)");
     	   
-    		statement.execute("create table if not exists trycatchsexceptionclasses ("
+    		/*statement.execute("create table if not exists catch_types ("
     	   		+ "trycatch_id INTEGER,"
-    	   		+ "exception_class_id INTEGER)");
+    	   		+ "exception_class_id INTEGER)");*/
     	   
        }
        catch(SQLException e)
