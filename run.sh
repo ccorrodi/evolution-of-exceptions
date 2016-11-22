@@ -30,12 +30,11 @@ while read current_repo; do
 			initial=false
 			cd $home_dir/github-projects/$foldername
 			git checkout ${last_checkout[1]}
-			cd src/
 			cloc_out=$(cloc ./ --include-lang=Java --csv --csv-delimiter=';' --quiet)
 			locmetric=(${cloc_out//;/ })
 			cd $home_dir
 			# path timestamp commithash foldername blanklines commentlines codelines
-		  java -jar target/scg-seminar-exceptions-0.0.1-SNAPSHOT-jar-with-dependencies.jar $home_dir/github-projects/$foldername/src ${last_checkout[0]} ${last_checkout[1]} $foldername ${locmetric[16]} ${locmetric[17]} ${locmetric[18]}
+		  java -jar target/scg-seminar-exceptions-0.0.1-SNAPSHOT-jar-with-dependencies.jar $home_dir/github-projects/$foldername ${last_checkout[0]} ${last_checkout[1]} $foldername ${locmetric[16]} ${locmetric[17]} ${locmetric[18]}
 			#run index java
 			last_checkout=(${line//:/ })
 		fi

@@ -8,7 +8,7 @@ import com.github.javaparser.ast.type.ReferenceType;
 import com.github.javaparser.ast.visitor.VoidVisitorAdapter;
 
 public class ThrowsVisitor {
-	 public static void listAllThrows(File projectDir) {
+	 public static void listAllThrows(File projectDir, ArrayList<ExceptionClass> userDefinedExceptions) {
 	        new FileExplorer((level, path, file) -> path.endsWith(".java"), (level, path, file) -> {
 
 	        	DatabaseManager dbManager = DatabaseManager.getInstance();
