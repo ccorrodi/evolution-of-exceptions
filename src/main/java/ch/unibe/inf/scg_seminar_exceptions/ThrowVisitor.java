@@ -68,6 +68,7 @@ public class ThrowVisitor {
                 }.visit(JavaParser.parse(file), null);
             } catch (Exception e) {
             	dbManager.addParserException(path, e.toString(), "throws", "");
+            	e.printStackTrace();
             }
         }).explore(projectDir);
     }  

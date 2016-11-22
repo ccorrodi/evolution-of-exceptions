@@ -82,7 +82,7 @@ public class DatabaseManager {
 			openDbConnection();
 			PreparedStatement statement = connection.prepareStatement("insert into commits (project_id, "
 					+ "commit_hash, commit_timestamp, blank_lines, comment_lines, "
-					+ "code_lines) values(?,?,?,?,?,?)", Statement.RETURN_GENERATED_KEYS);
+					+ "code_lines, project_name) values(?,?,?,?,?,?,?)", Statement.RETURN_GENERATED_KEYS);
 			statement.setLong(1, project_id);
 			statement.setString(2, commit);
 			
@@ -90,6 +90,7 @@ public class DatabaseManager {
 			statement.setInt(4, blankLines);
 			statement.setInt(5, commentLines);
 			statement.setInt(6, codeLines);
+			statement.setString(7, project);
 			statement.execute();
 			statement.getGeneratedKeys().next();
 			commit_id = statement.getGeneratedKeys().getLong(1);
@@ -302,7 +303,8 @@ public class DatabaseManager {
     	   		+ "commit_timestamp TIMESTAMP, "
     	   		+ "blank_lines INTEGER,"
     	   		+ "comment_lines INTEGER,"
-    	   		+ "code_lines INTEGER)");
+    	   		+ "code_lines INTEGER,"
+    	   		+ "project_name TEXT)");
     	   
     		statement.execute("create table if not exists exception_classes ("
     			+ "id SERIAL PRIMARY KEY,"
