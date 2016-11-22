@@ -17,12 +17,12 @@ public class ExceptionClassVisitor {
 	    	JavaExceptionNames jen = new JavaExceptionNames();
 	    	ArrayList<String> checkedExceptionNames = jen.getExceptionNamesFrom("checked_exceptions.txt");
 	    	for(String name : checkedExceptionNames) {
-	    		exceptionClasses.add(new ExceptionClass(name, true, Scope.DEFAULT));
+	    		exceptionClasses.add(new ExceptionClass(name, true, Scope.STANDARD));
 	    	}
 	    	
 	    	ArrayList<String> uncheckedExceptionNames = jen.getExceptionNamesFrom("unchecked_exceptions.txt");
 	    	for(String name : uncheckedExceptionNames) {
-	    		exceptionClasses.add(new ExceptionClass(name, false, Scope.DEFAULT));
+	    		exceptionClasses.add(new ExceptionClass(name, false, Scope.STANDARD));
 	    	}
 
 	    	
@@ -77,12 +77,12 @@ public class ExceptionClassVisitor {
 		    		}
 		    		tmp = tmp.next();
 		       		if(uncheckedExceptionNames.contains(tmp.getClassName())){
-		       			exceptionClasses.add(new ExceptionClass(hierarchieEntry.getClassName(), false, Scope.USERDEFINED));
+		       			exceptionClasses.add(new ExceptionClass(hierarchieEntry.getClassName(), false, Scope.CUSTOM));
 						dbManager.addExceptionClass(hierarchieEntry.getFile().getPath(), hierarchieEntry.getClassName(), "unchecked", hierarchieEntry.getNode().toString());
 						//System.out.println("Unchecked Exception: " + hierarchieEntry.getClassName());
 						break;
 		       		} else if( checkedExceptionNames.contains(tmp.getClassName()) ) {
-		       			exceptionClasses.add(new ExceptionClass(hierarchieEntry.getClassName(), true, Scope.USERDEFINED));
+		       			exceptionClasses.add(new ExceptionClass(hierarchieEntry.getClassName(), true, Scope.CUSTOM));
 		       			dbManager.addExceptionClass(hierarchieEntry.getFile().getPath(), hierarchieEntry.getClassName(), "checked", hierarchieEntry.getNode().toString());
 			    		//System.out.println("Checked Exception: " + hierarchieEntry.getClassName());
 			    		break;

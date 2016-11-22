@@ -8,32 +8,56 @@ import com.github.javaparser.ast.type.ReferenceType;
 import com.github.javaparser.ast.visitor.VoidVisitorAdapter;
 
 public class ThrowsVisitor {
-	 public static void listAllThrows(File projectDir, ArrayList<ExceptionClass> userDefinedExceptions) {
+	 public static void listAllThrows(File projectDir, ArrayList<ExceptionClass> exceptionClasses) {
 	        new FileExplorer((level, path, file) -> path.endsWith(".java"), (level, path, file) -> {
 
 	        	DatabaseManager dbManager = DatabaseManager.getInstance();
-	        	
-	        	JavaExceptionNames jen = new JavaExceptionNames();
-	        	ArrayList<String> javaExceptions = jen.getExceptionNamesFrom("checked_exceptions.txt");
-	        	javaExceptions.addAll(jen.getExceptionNamesFrom("unchecked_exceptions.txt"));
 	        	
 	            try {
 	                new VoidVisitorAdapter<Object>() {
 	                    @Override
 	                    public void visit(MethodDeclaration n, Object arg) {
 	                        super.visit(n, arg);
-	                        long methodThrowsDeclarationId = dbManager.addMethodThrowsDeclaration(file.getPath(), 
-																	n.getBegin().line, n.getEnd().line, n.toString());
+	                        boolean custom = false;
+	                        boolean standard = false;
+	                        boolean library = false;
 	                        
-	                        for(ReferenceType methodThrows : n.getThrows()){   	
-	                        	
+	                        String types = "";
+	                        
+	                        for(ReferenceType methodThrows : n.getThrows()){  
+
+	                        	String type = methodThrows.getType().toString();
+	                        	String[] typePath = type.split("\\.");
+	                        	if(typePath.length > 0){
+	                        		type = typePath[typePath.length-1];
+	                        	}
+	                        	types += type + ", ";
+	                        	for(ExceptionClass ec : exceptionClasses){
+	                        		if(type.equals(ec.getName())){
+	                        			if(ec.getScope()==Scope.CUSTOM) {
+	                        				custom = true;
+	                        			} else if(ec.getScope()==Scope.STANDARD) {
+	                        				standard = true;
+	                        			} else {
+	                        				library = true;
+	                        			}
+	                        		}
+	                        	}
+	                        }
+	                        
+	                        dbManager.addMethodThrowsDeclaration(file.getPath(), 
+																	n.getBegin().line, n.getEnd().line, n.toString(), custom, standard, library, types);
+	                        
+	                       /* for(ReferenceType methodThrows : n.getThrows()){   	
+	               
 	                        	dbManager.addMethodThrowsDeclationType(methodThrowsDeclarationId, 
 	                        			methodThrows.toString(), !javaExceptions.contains(methodThrows.toString()));
-	                        }
+	                        } */
 
 	                    }
 	                }.visit(JavaParser.parse(file), null);
 	            } catch (Exception e) {
+	            	e.printStackTrace();
 	            	dbManager.addParserException(path, e.toString(), "throws", "");
 	            }
 	        }).explore(projectDir);

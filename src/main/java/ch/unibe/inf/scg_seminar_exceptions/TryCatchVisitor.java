@@ -10,13 +10,9 @@ import com.github.javaparser.ast.stmt.TryStmt;
 import com.github.javaparser.ast.visitor.VoidVisitorAdapter;
 
 public class TryCatchVisitor {
-    public static void listAllTryStatements(File projectDir) {
+    public static void listAllTryStatements(File projectDir, ArrayList<ExceptionClass> exceptionClasses) {
         new FileExplorer((level, path, file) -> path.endsWith(".java"), (level, path, file) -> {
         	DatabaseManager dbManager = DatabaseManager.getInstance();
-        	
-        	JavaExceptionNames jen = new JavaExceptionNames();
-        	ArrayList<String> javaExceptions = jen.getExceptionNamesFrom("checked_exceptions.txt");
-        	javaExceptions.addAll(jen.getExceptionNamesFrom("unchecked_exceptions.txt"));
         	
             try {
                 new VoidVisitorAdapter<Object>() {
@@ -24,11 +20,18 @@ public class TryCatchVisitor {
                     public void visit(TryStmt n, Object arg) {
                         super.visit(n, arg);
                         
-                        int loc_catch_finally = 0;
+                        int loc_finally = 0;
+    					int loc_catch = 0;
     					
+                        boolean custom = false;
+                        boolean standard = false;
+                        boolean library = false;
+                        
+                        String types = "";
+                        
     					// get finally
     					if(n.getFinallyBlock() != null ) {
-    						loc_catch_finally = n.getFinallyBlock().getEnd().line - n.getFinallyBlock().getBegin().line;
+    						loc_finally = n.getFinallyBlock().getEnd().line - n.getFinallyBlock().getBegin().line;
     					}
     					
                         // get the catch clause
@@ -36,17 +39,35 @@ public class TryCatchVisitor {
                        
                         // get the type of the caught exceptions
                         for(CatchClause cc : catchClauses) {
-                        	loc_catch_finally = loc_catch_finally + cc.getEnd().line - cc.getBegin().line;
+                        	loc_catch = loc_catch + cc.getEnd().line - cc.getBegin().line;
+                        	String type = cc.getParam().getType().toStringWithoutComments();
+                        	
+                        	// remove packet
+                        	String[] typePath = type.split("\\.");
+                        	if(typePath.length > 0){
+                        		type = typePath[typePath.length-1];
+                        	}
+                        	
+                        	types += type + ",";
+                        	
+                        	for(ExceptionClass ec : exceptionClasses){
+                        		if(type.equals(ec.getName())){
+                        			if(ec.getScope()==Scope.CUSTOM) {
+                        				custom = true;
+                        			} else if(ec.getScope()==Scope.STANDARD) {
+                        				standard = true;
+                        			} else {
+                        				library = true;
+                        			}
+                        		}
+                        	}
+                        	
                         }
-
+ 
                         // add tc block to db
-    					long tcb_id = dbManager.addTryCatch(file.getPath(), n.getBegin().line, n.getEnd().line, n.toString(), loc_catch_finally);
-                       
-                        // get the type of the caught exceptions
-                        for(CatchClause cc : catchClauses) {
-                        	String className = cc.getParam().getType().toStringWithoutComments();
-                        	dbManager.addTcbException(tcb_id, className, !javaExceptions.contains(className));
-                        }
+    					dbManager.addTryCatch(file.getPath(), n.getBegin().line, n.getEnd().line, 
+    							n.toString(), loc_catch, loc_finally, custom, standard, library, types,
+    							catchClauses.size(), (n.getFinallyBlock() != null));
                         
                     }
                 }.visit(JavaParser.parse(file), null);

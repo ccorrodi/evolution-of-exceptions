@@ -17,11 +17,12 @@ public class App
     	dbManager.addProject();
     	dbManager.addCommit();
     	
-    	ArrayList<ExceptionClass> userDefinedExceptions = ExceptionClassVisitor.listClassesDerivedFromException(new File(args[0]));
-    	ThrowsVisitor.listAllThrows(new File(args[0]),userDefinedExceptions);
+    	ArrayList<ExceptionClass> exceptionClasses = ExceptionClassVisitor.listClassesDerivedFromException(new File(args[0]));
+    	ThrowsVisitor.listAllThrows(new File(args[0]), exceptionClasses);
+    	TryCatchVisitor.listAllTryStatements(new File(args[0]), exceptionClasses);
+    	ThrowVisitor.listAllThrowStatements(new File(args[0]), exceptionClasses);
     	
 //      ReturnNullVisitor.listAllReturnNullStatements(new File(args[0]));        
-    	TryCatchVisitor.listAllTryStatements(new File(args[0]));
-    	ThrowVisitor.listAllThrowStatements(new File(args[0]));
+//    
     }
 }

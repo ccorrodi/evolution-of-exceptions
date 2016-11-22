@@ -8,13 +8,10 @@ import com.github.javaparser.ast.stmt.ThrowStmt;
 import com.github.javaparser.ast.visitor.VoidVisitorAdapter;
 
 public class ThrowVisitor {
-    public static void listAllThrowStatements(File projectDir) {
+    public static void listAllThrowStatements(File projectDir, ArrayList<ExceptionClass> exceptionClasses) {
         new FileExplorer((level, path, file) -> path.endsWith(".java"), (level, path, file) -> {
         	DatabaseManager dbManager = DatabaseManager.getInstance();
         	
-        	JavaExceptionNames jen = new JavaExceptionNames();
-        	ArrayList<String> javaExceptions = jen.getExceptionNamesFrom("checked_exceptions.txt");
-        	javaExceptions.addAll(jen.getExceptionNamesFrom("unchecked_exceptions.txt"));
             try {
                 new VoidVisitorAdapter<Object>() {
                     @Override
@@ -41,8 +38,32 @@ public class ThrowVisitor {
                         	className = "+++UnidentifiedExpression";
                         }
                         
-                        dbManager.addThrow(file.getPath(), n.getBegin().line, n.toString(),className, !javaExceptions.contains(className));
-                      //  System.out.println("Throw: [L " + n.getBegin().line + "] ");
+                        boolean custom = false;
+                        boolean standard = false;
+                        boolean library = false;
+                        
+                    	// remove packet
+                    	String[] typePath = className.split("\\.");
+                    	if(typePath.length > 0){
+                    		className = typePath[typePath.length-1];
+                    	}
+                    	
+                    	for(ExceptionClass ec : exceptionClasses){
+                    		if(className.equals(ec.getName())){
+                    			if(ec.getScope()==Scope.CUSTOM) {
+                    				custom = true;
+                    			} else if(ec.getScope()==Scope.STANDARD) {
+                    				standard = true;
+                    			} else {
+                    				library = true;
+                    			}
+                    		}
+                    	}
+                        
+                        dbManager.addThrow(file.getPath(), n.getBegin().line, n.toString(), className, 
+                        		custom, standard, library);
+                        
+                   
                     }
                 }.visit(JavaParser.parse(file), null);
             } catch (Exception e) {
