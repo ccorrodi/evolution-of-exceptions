@@ -55,6 +55,8 @@ public class ThrowVisitor {
                     			} else if(ec.getScope()==Scope.STANDARD) {
                     				standard = true;
                     			} else {
+                    				// TODO the library class is not in the exceptionClasses List 
+
                     				library = true;
                     			}
                     		}

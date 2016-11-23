@@ -35,4 +35,4 @@ SELECT b1.project_name, b1.commit_timestamp, b1.commit_hash, b1.code_lines as lo
     (SELECT count(CASE WHEN types = 'Exception,' THEN 1 END) as caught_exception, commit_hash FROM trycatchs t1
 	   JOIN commits t2 ON t1.commit_id = t2.id
 	    GROUP BY commit_hash) b5 ON b1.commit_hash = b5.commit_hash
-  ORDER BY commit_timestamp;
+  ORDER BY project_name, commit_timestamp;
