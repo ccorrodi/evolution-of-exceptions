@@ -18,7 +18,7 @@ while read current_repo; do
 
 	commit_hash=$(git rev-parse HEAD)
 	repo_url=$(git config --get remote.origin.url)
-	commits=$(git log --format=%at:%H)
+	commits=$(git log --format=%ct:%H)
 
 	echo "----"
 	##set -f
@@ -28,13 +28,16 @@ while read current_repo; do
 		current=(${line//:/ })
 		if $initial || ((${current[0]}<(last_checkout - 60*60*24*31*$interval_months))) ; then
 			initial=false
+
 			cd $home_dir/github-projects/$foldername
 			git checkout ${last_checkout[1]}
+			
 			cloc_out=$(cloc ./ --include-lang=Java --csv --csv-delimiter=';' --quiet)
 			locmetric=(${cloc_out//;/ })
 			cd $home_dir
 			# path timestamp commithash foldername blanklines commentlines codelines
 		  java -jar target/scg-seminar-exceptions-0.0.1-SNAPSHOT-jar-with-dependencies.jar $home_dir/github-projects/$foldername ${last_checkout[0]} ${last_checkout[1]} $foldername ${locmetric[16]} ${locmetric[17]} ${locmetric[18]}
+
 			#run index java
 			last_checkout=(${line//:/ })
 		fi

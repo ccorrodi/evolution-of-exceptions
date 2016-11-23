@@ -3,6 +3,7 @@ package ch.unibe.inf.scg_seminar_exceptions;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Scanner;
 
 import com.github.javaparser.JavaParser;
 import com.github.javaparser.ast.stmt.CatchClause;
@@ -26,12 +27,18 @@ public class TryCatchVisitor {
                         boolean custom = false;
                         boolean standard = false;
                         boolean library = false;
-                        
+                        Scanner scanner;
                         String types = "";
                         
     					// get finally
     					if(n.getFinallyBlock() != null ) {
-    						loc_finally = n.getFinallyBlock().getEnd().line - n.getFinallyBlock().getBegin().line;
+                        	scanner = new Scanner(n.getFinallyBlock().toStringWithoutComments());
+                        	while (scanner.hasNextLine()) {
+                        	  String line = scanner.nextLine();
+                        	  if(line.contains(")") || (line.contains("{") && line.contains(")")) || line.contains(";")){
+                        		  loc_finally++;
+                        	  }
+                        	}
     					}
     					
                         // get the catch clause
@@ -39,7 +46,19 @@ public class TryCatchVisitor {
                        
                         // get the type of the caught exceptions
                         for(CatchClause cc : catchClauses) {
-                        	loc_catch = loc_catch + cc.getEnd().line - cc.getBegin().line;
+                        	
+                        	int loc_counter = 0;
+                        	scanner = new Scanner(cc.toStringWithoutComments());
+                        	while (scanner.hasNextLine()) {
+                        	  String line = scanner.nextLine();
+                        	  if(line.contains(")") || (line.contains("{") && line.contains(")")) || line.contains(";")){
+                        		  loc_counter++;
+                        	  }
+                        	}
+                        	
+                        	scanner.close();
+
+                        	loc_catch += loc_counter - 1 ;
                         	String type = cc.getParam().getType().toStringWithoutComments();
                         	
                         	// remove packet

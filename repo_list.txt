@@ -1,4 +1,4 @@
 https://github.com/elastic/elasticsearch
 https://github.com/apache/lucene-solr
 https://github.com/hibernate/hibernate-search
-https://github.com/apache/nutchs
+https://github.com/apache/nutch
