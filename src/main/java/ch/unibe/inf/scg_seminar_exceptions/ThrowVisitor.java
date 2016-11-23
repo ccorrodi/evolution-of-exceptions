@@ -54,18 +54,15 @@ public class ThrowVisitor {
                     				custom = true;
                     			} else if(ec.getScope()==Scope.STANDARD) {
                     				standard = true;
-                    			} else {
-                    				// TODO the library class is not in the exceptionClasses List 
-
-                    				library = true;
                     			}
                     		}
+                    	}
+                    	if(!custom && !standard) {
+                    		library = true;
                     	}
                         
                         dbManager.addThrow(file.getPath(), n.getBegin().line, n.toString(), className, 
                         		custom, standard, library);
-                        
-                   
                     }
                 }.visit(JavaParser.parse(file), null);
             } catch (Exception e) {

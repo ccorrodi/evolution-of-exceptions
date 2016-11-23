@@ -38,12 +38,11 @@ public class ThrowsVisitor {
 	                        				custom = true;
 	                        			} else if(ec.getScope()==Scope.STANDARD) {
 	                        				standard = true;
-	                        			} else {
-	                        				// TODO the library class is not in the exceptionClasses List 
-	                        				
-	                        				library = true;
-	                        			}
+	                        			} 
 	                        		}
+	                        	}
+	                        	if(!custom && !standard) {
+	                        		library = true;
 	                        	}
 	                        }
 	                        
