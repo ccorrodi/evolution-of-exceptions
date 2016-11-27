@@ -16,8 +16,13 @@ public class ThrowVisitor {
                 new VoidVisitorAdapter<Object>() {
                     @Override
                     public void visit(ThrowStmt n, Object arg) {
+
                         super.visit(n, arg);
-                        //TODO cast is buggy
+
+                        boolean stringArg = false;
+                        
+                        stringArg = n.toStringWithoutComments().contains("\"");
+
                         String exprClass = n.getExpr().getClass().getSimpleName();
                         String className = "";
                         if(exprClass.equals("ObjectCreationExpr")){
@@ -62,7 +67,7 @@ public class ThrowVisitor {
                     	}
                         
                         dbManager.addThrow(file.getPath(), n.getBegin().line, n.toString().replaceAll("\0", ""), className, 
-                        		custom, standard, library);
+                        		custom, standard, library, stringArg);
                     }
                 }.visit(JavaParser.parse(file), null);
             } catch (Exception e) {

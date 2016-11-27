@@ -23,6 +23,7 @@ SELECT b1.project_name, b1.commit_timestamp, b1.commit_hash, b1.code_lines as lo
       	count(CASE WHEN standard AND NOT custom THEN 1 END) as ts,
       	count(CASE WHEN library AND exception_class NOT LIKE '+++%' THEN 1 END) as tl,
 				count(CASE WHEN exception_class LIKE '+++%' THEN 1 END) as tf,
+				count(CASE WHEN standard AND string_arg THEN 1 END) as tsm,
       	count(CASE WHEN custom OR standard OR library THEN 1 END) as ta FROM throws t1
     	JOIN commits t2 ON t1.commit_id = t2.id
       	GROUP BY commit_timestamp, commit_hash) b3 ON b1.commit_hash = b3.commit_hash
