@@ -78,12 +78,12 @@ public class ExceptionClassVisitor {
 		    		tmp = tmp.next();
 		       		if(uncheckedExceptionNames.contains(tmp.getClassName())){
 		       			exceptionClasses.add(new ExceptionClass(hierarchieEntry.getClassName(), false, Scope.CUSTOM));
-						dbManager.addExceptionClass(hierarchieEntry.getFile().getPath(), hierarchieEntry.getClassName(), "unchecked", hierarchieEntry.getNode().toString());
+						dbManager.addExceptionClass(hierarchieEntry.getFile().getPath(), hierarchieEntry.getClassName(), "unchecked", hierarchieEntry.getNode().toString().replaceAll("\0", ""));
 						//System.out.println("Unchecked Exception: " + hierarchieEntry.getClassName());
 						break;
 		       		} else if( checkedExceptionNames.contains(tmp.getClassName()) ) {
 		       			exceptionClasses.add(new ExceptionClass(hierarchieEntry.getClassName(), true, Scope.CUSTOM));
-		       			dbManager.addExceptionClass(hierarchieEntry.getFile().getPath(), hierarchieEntry.getClassName(), "checked", hierarchieEntry.getNode().toString());
+		       			dbManager.addExceptionClass(hierarchieEntry.getFile().getPath(), hierarchieEntry.getClassName(), "checked", hierarchieEntry.getNode().toString().replaceAll("\0", ""));
 			    		//System.out.println("Checked Exception: " + hierarchieEntry.getClassName());
 			    		break;
 		       		}

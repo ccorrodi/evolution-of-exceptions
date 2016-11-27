@@ -1,0 +1,745 @@
+"source"
+"try {
+    scfilters.initialScore(key, result);
+} catch (ScoringFilterException e) {
+    if (LOG.isWarnEnabled()) {
+        LOG.warn(""Cannot filter init score for url "" + key + "", using default: "" + e.getMessage());
+    }
+    result.setScore(0.0f);
+}"
+"// URLFilters
+try {
+    if (filters.filter(url.toString()) == null)
+        return;
+} catch (URLFilterException e) {
+    if (LOG.isWarnEnabled()) {
+        LOG.warn(""Couldn't filter url: "" + url + "" ("" + e.getMessage() + "")"");
+    }
+}"
+"try {
+    sort = scfilters.generatorSortValue(key, crawlDatum, sort);
+} catch (ScoringFilterException sfe) {
+    if (LOG.isWarnEnabled()) {
+        LOG.warn(""Couldn't filter generatorSortValue for "" + key + "": "" + sfe);
+    }
+}"
+"try {
+    key.set(url);
+    scfilters.injectedScore(key, datum);
+} catch (ScoringFilterException e) {
+    if (LOG.isWarnEnabled()) {
+        LOG.warn(""Cannot filter injected score for url "" + url + "", using default ("" + e.getMessage() + "")"");
+    }
+}"
+"try {
+    scfilters.initialScore(url, newDatum);
+} catch (ScoringFilterException e) {
+    e.printStackTrace();
+}"
+"// run scoring filters
+try {
+    boost = this.scfilters.indexerScore(key, doc, dbDatum, fetchDatum, parse, inlinks, boost);
+} catch (final ScoringFilterException e) {
+    reporter.incrCounter(""IndexerStatus"", ""errors (ScoringFilter)"", 1);
+    if (LOG.isWarnEnabled()) {
+        LOG.warn(""Error calculating score {}: {}"", key, e);
+    }
+    return;
+}"
+"try {
+    // Indexing filters may also be interested in the signature
+    fetchDatum.setSignature(dbDatum.getSignature());
+    // extract information from dbDatum and pass it to
+    // fetchDatum so that indexing filters can use it
+    final Text url = (Text) dbDatum.getMetaData().get(Nutch.WRITABLE_REPR_URL_KEY);
+    if (url != null) {
+        // Representation URL also needs normalization and filtering.
+        // If repr URL is excluded by filters we still accept this document
+        // but represented by its primary URL (""key"") which has passed URL
+        // filters.
+        String urlString = filterUrl(normalizeUrl(url.toString()));
+        if (urlString != null) {
+            url.set(urlString);
+            fetchDatum.getMetaData().put(Nutch.WRITABLE_REPR_URL_KEY, url);
+        }
+    }
+    // run indexing filters
+    doc = this.filters.filter(doc, parse, key, fetchDatum, inlinks);
+} catch (final IndexingException e) {
+    if (LOG.isWarnEnabled()) {
+        LOG.warn(""Error indexing "" + key + "": "" + e);
+    }
+    reporter.incrCounter(""IndexerStatus"", ""errors (IndexingFilter)"", 1);
+    return;
+}"
+"try {
+    doc = indexers.filter(doc, parse, urlText, datum, inlinks);
+} catch (IndexingException e) {
+    e.printStackTrace();
+}"
+"try {
+    ExtensionPoint point = PluginRepository.get(conf).getExtensionPoint(IndexWriter.X_POINT_ID);
+    if (point == null)
+        throw new RuntimeException(IndexWriter.X_POINT_ID + "" not found."");
+    Extension[] extensions = point.getExtensions();
+    HashMap<String, IndexWriter> indexerMap = new HashMap<String, IndexWriter>();
+    for (int i = 0; i < extensions.length; i++) {
+        Extension extension = extensions[i];
+        IndexWriter writer = (IndexWriter) extension.getExtensionInstance();
+        LOG.info(""Adding "" + writer.getClass().getName());
+        if (!indexerMap.containsKey(writer.getClass().getName())) {
+            indexerMap.put(writer.getClass().getName(), writer);
+        }
+    }
+    objectCache.setObject(IndexWriter.class.getName(), indexerMap.values().toArray(new IndexWriter[0]));
+} catch (PluginRuntimeException e) {
+    throw new RuntimeException(e);
+}"
+"try {
+    filters[i] = (URLExemptionFilter) extensions[i].getExtensionInstance();
+} catch (PluginRuntimeException e) {
+    throw new IllegalStateException(e);
+}"
+"try {
+    // check to see if we've cached this URLNormalizer instance yet
+    normalizer = (URLNormalizer) objectCache.getObject(ext.getId());
+    if (normalizer == null) {
+        // go ahead and instantiate it and then cache it
+        normalizer = (URLNormalizer) ext.getExtensionInstance();
+        objectCache.setObject(ext.getId(), normalizer);
+    }
+    normalizers.add(normalizer);
+} catch (PluginRuntimeException e) {
+    e.printStackTrace();
+    LOG.warn(""URLNormalizers:PluginRuntimeException when "" + ""initializing url normalizer plugin "" + ext.getDescriptor().getPluginId() + "" instance in getURLNormalizers "" + ""function: attempting to continue instantiating plugins"");
+}"
+"try {
+    scfilters.initialScore(targetUrl, target);
+} catch (ScoringFilterException e) {
+    LOG.warn(""Cannot filter init score for url "" + key + "", using default: "" + e.getMessage());
+    target.setScore(0.0f);
+}"
+"try {
+    // compute score contributions and adjustment to the original score
+    adjust = scfilters.distributeScoreToOutlinks(key, parseData, targets, null, links.length);
+} catch (ScoringFilterException e) {
+    LOG.warn(""Cannot distribute score from "" + key + "": "" + e.getMessage());
+}"
+"try {
+    // check to see if we've cached this parser instance yet
+    p = (Parser) objectCache.getObject(ext.getId());
+    if (p == null) {
+        // go ahead and instantiate it and then cache it
+        p = (Parser) ext.getExtensionInstance();
+        objectCache.setObject(ext.getId(), p);
+    }
+    parsers.add(p);
+} catch (PluginRuntimeException e) {
+    if (LOG.isWarnEnabled()) {
+        LOG.warn(""ParserFactory:PluginRuntimeException when "" + ""initializing parser plugin "" + ext.getDescriptor().getPluginId() + "" instance in getParsers "" + ""function: attempting to continue instantiating parsers"");
+    }
+}"
+"try {
+    Parser p = (Parser) parserExt.getExtensionInstance();
+    objectCache.setObject(parserExt.getId(), p);
+    return p;
+} catch (PluginRuntimeException e) {
+    if (LOG.isWarnEnabled()) {
+        LOG.warn(""Canno initialize parser "" + parserExt.getDescriptor().getPluginId() + "" (cause: "" + e.toString());
+    }
+    throw new ParserNotFound(""Cannot init parser for id ["" + id + ""]"");
+}"
+"try {
+    scfilters.passScoreAfterParsing(url, content, parse);
+} catch (ScoringFilterException e) {
+    if (LOG.isWarnEnabled()) {
+        LOG.warn(""Error passing score: "" + url + "": "" + e.getMessage());
+    }
+}"
+"try {
+    parsers = this.parserFactory.getParsers(content.getContentType(), content.getUrl() != null ? content.getUrl() : """");
+} catch (ParserNotFound e) {
+    if (LOG.isWarnEnabled()) {
+        LOG.warn(""No suitable parser found when trying to parse content "" + content.getUrl() + "" of type "" + content.getContentType());
+    }
+    throw new ParseException(e.getMessage());
+}"
+"try {
+    p = this.parserFactory.getParserById(extId);
+} catch (ParserNotFound e) {
+    if (LOG.isWarnEnabled()) {
+        LOG.warn(""No suitable parser found when trying to parse content "" + content.getUrl() + "" of type "" + content.getContentType());
+    }
+    throw new ParseException(e.getMessage());
+}"
+"try {
+    long lastModified = HttpDateFormat.toLong(lastModifiedDate);
+    status.setLastModified(lastModified);
+} catch (ParseException e) {
+}"
+"try {
+    installExtensions(fRegisteredPlugins);
+} catch (PluginRuntimeException e) {
+    LOG.error(e.toString());
+    throw new RuntimeException(e.getMessage());
+}"
+"try {
+    checked.putAll(getPluginCheckedDependencies(plugin, all));
+    checked.put(plugin.getPluginId(), plugin);
+} catch (MissingDependencyException mde) {
+    LOG.warn(mde.getMessage());
+} catch (CircularDependencyException cde) {
+    LOG.warn(cde.getMessage());
+}"
+"try {
+    checked.putAll(getPluginCheckedDependencies(plugin, all));
+    checked.put(plugin.getPluginId(), plugin);
+} catch (MissingDependencyException mde) {
+    LOG.warn(mde.getMessage());
+} catch (CircularDependencyException cde) {
+    LOG.warn(cde.getMessage());
+}"
+"try {
+    ExtensionPoint point = PluginRepository.get(conf).getExtensionPoint(xPointId);
+    if (point == null)
+        throw new RuntimeException(xPointId + "" not found."");
+    Extension[] extensions = point.getExtensions();
+    HashMap<String, Object> filterMap = new HashMap<String, Object>();
+    for (int i = 0; i < extensions.length; i++) {
+        Extension extension = extensions[i];
+        Object filter = extension.getExtensionInstance();
+        if (!filterMap.containsKey(filter.getClass().getName())) {
+            filterMap.put(filter.getClass().getName(), filter);
+            if (!userDefinedOrder)
+                orderOfFilters.add(filter.getClass().getName());
+        }
+    }
+    List<Object> sorted = new ArrayList<Object>();
+    for (String orderedFilter : orderOfFilters) {
+        Object f = filterMap.get(orderedFilter);
+        if (f == null) {
+            LOG.error(clazz.getSimpleName() + "" : "" + orderedFilter + "" declared in configuration property "" + orderProperty + "" but not found in an active plugin - ignoring."");
+            continue;
+        }
+        sorted.add(f);
+    }
+    Object[] filter = (Object[]) Array.newInstance(clazz, sorted.size());
+    for (int i = 0; i < sorted.size(); i++) {
+        filter[i] = sorted.get(i);
+        if (LOG.isTraceEnabled()) {
+            LOG.trace(clazz.getSimpleName() + "" : filters["" + i + ""] = "" + filter[i].getClass());
+        }
+    }
+    objectCache.setObject(clazz.getName(), filter);
+} catch (PluginRuntimeException e) {
+    throw new RuntimeException(e);
+}"
+"try {
+    URL url = new URL(urlString);
+    String protocolName = url.getProtocol();
+    if (protocolName == null)
+        throw new ProtocolNotFound(urlString);
+    String cacheId = Protocol.X_POINT_ID + protocolName;
+    Protocol protocol = (Protocol) objectCache.getObject(cacheId);
+    if (protocol != null) {
+        return protocol;
+    }
+    Extension extension = findExtension(protocolName);
+    if (extension == null) {
+        throw new ProtocolNotFound(protocolName);
+    }
+    protocol = (Protocol) extension.getExtensionInstance();
+    objectCache.setObject(cacheId, protocol);
+    return protocol;
+} catch (MalformedURLException e) {
+    throw new ProtocolNotFound(urlString, e.toString());
+} catch (PluginRuntimeException e) {
+    throw new ProtocolNotFound(urlString, e.toString());
+}"
+"try {
+    protocol = factory.getProtocol(robotsTxtUrl.toString());
+} catch (ProtocolNotFound e) {
+    LOG.error(""No protocol found for {}: {}"", args[0], StringUtils.stringifyException(e));
+    return -1;
+}"
+"try {
+    ExtensionPoint point = PluginRepository.get(conf).getExtensionPoint(SegmentMergeFilter.X_POINT_ID);
+    if (point == null)
+        throw new RuntimeException(URLFilter.X_POINT_ID + "" not found."");
+    Extension[] extensions = point.getExtensions();
+    filters = new SegmentMergeFilter[extensions.length];
+    for (int i = 0; i < extensions.length; i++) {
+        filters[i] = (SegmentMergeFilter) extensions[i].getExtensionInstance();
+    }
+} catch (PluginRuntimeException e) {
+    throw new RuntimeException(e);
+}"
+"try {
+    long epoch = new SimpleDateFormat(""EEE, d MMM yyyy HH:mm:ss z"").parse(ifNullString(metadata.get(Metadata.LAST_MODIFIED))).getTime();
+    timestamp = String.valueOf(epoch);
+} catch (ParseException pe) {
+    LOG.warn(pe.getMessage());
+}"
+"try {
+    long epoch = new SimpleDateFormat(""EEE, dd MMM yyyy HH:mm:ss z"").parse(ifNullString(metadata.get(""Date""))).getTime();
+    timestamp = String.valueOf(epoch);
+} catch (ParseException pe) {
+    LOG.warn(pe.getMessage());
+}"
+"try {
+    long epoch = new SimpleDateFormat(""EEE, d MMM yyyy HH:mm:ss z"").parse(ifNullString(metadata.get(""Date""))).getTime();
+    timestamp = String.valueOf(epoch);
+} catch (ParseException pe) {
+    LOG.warn(pe.getMessage());
+}"
+"try {
+    long epoch = new SimpleDateFormat(""EEE, d MMM yyyy HH:mm:ss z"").parse(getDate(metadata.get(""Date""))).getTime();
+    timestamp = String.valueOf(epoch);
+} catch (ParseException pe) {
+    LOG.warn(pe.getMessage());
+}"
+"try {
+    // See if we need to open a new file because we've exceeded maxBytes
+    // checkSize will open a new file if we exceeded the maxBytes setting
+    writer.checkSize();
+    if (writer.getPosition() != position) {
+        // We just closed the file because it was larger than maxBytes.
+        position = writer.getPosition();
+    }
+    // response record
+    URI id = writeResponse();
+    if (StringUtils.isNotBlank(metadata.get(""_request_""))) {
+        // write the request method if any request info is found
+        writeRequest(id);
+    }
+} catch (IOException e) {
+    throw e;
+} catch (ParseException e) {
+    LOG.error(""Can't get a valid date from: {}"", url);
+}"
+"try {
+    // extract license metadata
+    Walker.walk(doc, base, parse.getData().getParseMeta(), getConf());
+} catch (ParseException e) {
+    Parse emptyParse = new ParseStatus(e).getEmptyParse(getConf());
+    parseResult.put(content.getUrl(), new ParseText(emptyParse.getText()), emptyParse.getData());
+    return parseResult;
+}"
+"try {
+    Parser parser = parserFactory.getParsers(contentType, link)[0];
+    parse = parser.getParse(new Content(link, link, text.getBytes(), contentType, contentMeta, conf)).get(link);
+} catch (ParserNotFound e) {
+}"
+"try {
+    time = HttpDateFormat.toLong(date);
+} catch (ParseException e) {
+    try {
+        Date parsedDate = DateUtils.parseDate(date, new String[] { ""EEE MMM dd HH:mm:ss yyyy"", ""EEE MMM dd HH:mm:ss yyyy zzz"", ""EEE MMM dd HH:mm:ss zzz yyyy"", ""EEE, MMM dd HH:mm:ss yyyy zzz"", ""EEE, dd MMM yyyy HH:mm:ss zzz"", ""EEE,dd MMM yyyy HH:mm:ss zzz"", ""EEE, dd MMM yyyy HH:mm:sszzz"", ""EEE, dd MMM yyyy HH:mm:ss"", ""EEE, dd-MMM-yy HH:mm:ss zzz"", ""yyyy/MM/dd HH:mm:ss.SSS zzz"", ""yyyy/MM/dd HH:mm:ss.SSS"", ""yyyy/MM/dd HH:mm:ss zzz"", ""yyyy/MM/dd"", ""yyyy.MM.dd HH:mm:ss"", ""yyyy-MM-dd HH:mm"", ""MMM dd yyyy HH:mm:ss. zzz"", ""MMM dd yyyy HH:mm:ss zzz"", ""dd.MM.yyyy HH:mm:ss zzz"", ""dd MM yyyy HH:mm:ss zzz"", ""dd.MM.yyyy; HH:mm:ss"", ""dd.MM.yyyy HH:mm:ss"", ""dd.MM.yyyy zzz"", ""yyyy-MM-dd'T'HH:mm:ss'Z'"" });
+        time = parsedDate.getTime();
+    } catch (Exception e2) {
+        if (LOG.isWarnEnabled()) {
+            LOG.warn(url + "": can't parse erroneous date: "" + date);
+        }
+    }
+}"
+"try {
+    Metadata metadata = new Metadata();
+    metadata.set(Response.CONTENT_LENGTH, Long.toString(entry.getSize()));
+    metadata.set(Response.CONTENT_TYPE, contentType);
+    Content content = new Content(newurl, base, b, contentType, metadata, this.conf);
+    Parse parse = new ParseUtil(this.conf).parse(content).get(content.getUrl());
+    ParseData theParseData = parse.getData();
+    Outlink[] theOutlinks = theParseData.getOutlinks();
+    for (int count = 0; count < theOutlinks.length; count++) {
+        outLinksList.add(new Outlink(theOutlinks[count].getToUrl(), theOutlinks[count].getAnchor()));
+    }
+    resultText += entry.getName() + "" "" + parse.getText() + "" "";
+} catch (ParseException e) {
+    if (LOG.isInfoEnabled()) {
+        LOG.info(""fetch okay, but can't parse "" + fname + "", reason: "" + e.getMessage());
+    }
+}"
+"// SYST is valid only after login
+try {
+    ftp.parser = null;
+    String parserKey = ftp.client.getSystemName();
+    // some server reports as UNKNOWN Type: L8, but in fact UNIX Type: L8
+    if (parserKey.startsWith(""UNKNOWN Type: L8""))
+        parserKey = ""UNIX Type: L8"";
+    ftp.parser = (new DefaultFTPFileEntryParserFactory()).createFileEntryParser(parserKey);
+} catch (FtpExceptionBadSystResponse e) {
+    if (Ftp.LOG.isWarnEnabled()) {
+        Ftp.LOG.warn(""ftp.client.getSystemName() failed: "" + addr + "" "" + e);
+    }
+    ftp.parser = null;
+} catch (ParserInitializationException e) {
+    if (Ftp.LOG.isWarnEnabled()) {
+        Ftp.LOG.warn(""createFileEntryParser() failed. "" + addr + "" "" + e);
+    }
+    ftp.parser = null;
+} finally {
+    if (ftp.parser == null) {
+        // FetcherThread/RequestScheduler will abort
+        if (Ftp.LOG.isWarnEnabled()) {
+            Ftp.LOG.warn(""ftp.parser is null: "" + addr);
+        }
+        ftp.client.logout();
+        ftp.client.disconnect();
+        // http Internal Server Error
+        this.code = 500;
+        return;
+    }
+}"
+"// SYST is valid only after login
+try {
+    ftp.parser = null;
+    String parserKey = ftp.client.getSystemName();
+    // some server reports as UNKNOWN Type: L8, but in fact UNIX Type: L8
+    if (parserKey.startsWith(""UNKNOWN Type: L8""))
+        parserKey = ""UNIX Type: L8"";
+    ftp.parser = (new DefaultFTPFileEntryParserFactory()).createFileEntryParser(parserKey);
+} catch (FtpExceptionBadSystResponse e) {
+    if (Ftp.LOG.isWarnEnabled()) {
+        Ftp.LOG.warn(""ftp.client.getSystemName() failed: "" + addr + "" "" + e);
+    }
+    ftp.parser = null;
+} catch (ParserInitializationException e) {
+    if (Ftp.LOG.isWarnEnabled()) {
+        Ftp.LOG.warn(""createFileEntryParser() failed. "" + addr + "" "" + e);
+    }
+    ftp.parser = null;
+} finally {
+    if (ftp.parser == null) {
+        // FetcherThread/RequestScheduler will abort
+        if (Ftp.LOG.isWarnEnabled()) {
+            Ftp.LOG.warn(""ftp.parser is null: "" + addr);
+        }
+        ftp.client.logout();
+        ftp.client.disconnect();
+        // http Internal Server Error
+        this.code = 500;
+        return;
+    }
+}"
+"try {
+    // first get its possible attributes
+    list = new LinkedList<FTPFile>();
+    ftp.client.retrieveList(path, list, ftp.maxContentLength, ftp.parser);
+    FTPFile ftpFile = (FTPFile) list.get(0);
+    this.headers.set(Response.CONTENT_LENGTH, new Long(ftpFile.getSize()).toString());
+    this.headers.set(Response.LAST_MODIFIED, HttpDateFormat.toString(ftpFile.getTimestamp()));
+    // don't retrieve the file if not changed.
+    if (ftpFile.getTimestamp().getTimeInMillis() <= lastModified) {
+        code = 304;
+        return;
+    }
+    os = new ByteArrayOutputStream(ftp.getBufferSize());
+    ftp.client.retrieveFile(path, os, ftp.maxContentLength);
+    this.content = os.toByteArray();
+    // // approximate bytes sent and read
+    // if (this.httpAccounting != null) {
+    // this.httpAccounting.incrementBytesSent(path.length());
+    // this.httpAccounting.incrementBytesRead(this.content.length);
+    // }
+    // http OK
+    this.code = 200;
+} catch (FtpExceptionControlClosedByForcedDataClose e) {
+    if ((ftp.followTalk) && (Ftp.LOG.isInfoEnabled())) {
+        Ftp.LOG.info(""delete client because server cut off control channel: "" + e);
+    }
+    ftp.client = null;
+    if (os == null) {
+        if (Ftp.LOG.isWarnEnabled()) {
+            Ftp.LOG.warn(""Please try larger maxContentLength for ftp.client.retrieveList(). "" + e);
+        }
+        this.code = 400;
+        return;
+    }
+    FTPFile ftpFile = (FTPFile) list.get(0);
+    this.headers.set(Response.CONTENT_LENGTH, new Long(ftpFile.getSize()).toString());
+    this.headers.set(Response.LAST_MODIFIED, HttpDateFormat.toString(ftpFile.getTimestamp()));
+    this.content = os.toByteArray();
+    if (ftpFile.getTimestamp().getTimeInMillis() <= lastModified) {
+        code = 304;
+        return;
+    }
+    this.code = 200;
+} catch (FtpExceptionCanNotHaveDataConnection e) {
+    if (FTPReply.isPositiveCompletion(ftp.client.cwd(path))) {
+        this.headers.set(Response.LOCATION, path + ""/"");
+        this.code = 300;
+    } else {
+        this.code = 404;
+    }
+} catch (FtpExceptionUnknownForcedDataClose e) {
+    if (Ftp.LOG.isWarnEnabled()) {
+        Ftp.LOG.warn(""Unrecognized reply after forced close of data channel. "" + ""If this is acceptable, please modify Client.java accordingly. "" + e);
+    }
+    this.code = 400;
+}"
+"try {
+    // first get its possible attributes
+    list = new LinkedList<FTPFile>();
+    ftp.client.retrieveList(path, list, ftp.maxContentLength, ftp.parser);
+    FTPFile ftpFile = (FTPFile) list.get(0);
+    this.headers.set(Response.CONTENT_LENGTH, new Long(ftpFile.getSize()).toString());
+    this.headers.set(Response.LAST_MODIFIED, HttpDateFormat.toString(ftpFile.getTimestamp()));
+    // don't retrieve the file if not changed.
+    if (ftpFile.getTimestamp().getTimeInMillis() <= lastModified) {
+        code = 304;
+        return;
+    }
+    os = new ByteArrayOutputStream(ftp.getBufferSize());
+    ftp.client.retrieveFile(path, os, ftp.maxContentLength);
+    this.content = os.toByteArray();
+    // // approximate bytes sent and read
+    // if (this.httpAccounting != null) {
+    // this.httpAccounting.incrementBytesSent(path.length());
+    // this.httpAccounting.incrementBytesRead(this.content.length);
+    // }
+    // http OK
+    this.code = 200;
+} catch (FtpExceptionControlClosedByForcedDataClose e) {
+    if ((ftp.followTalk) && (Ftp.LOG.isInfoEnabled())) {
+        Ftp.LOG.info(""delete client because server cut off control channel: "" + e);
+    }
+    ftp.client = null;
+    if (os == null) {
+        if (Ftp.LOG.isWarnEnabled()) {
+            Ftp.LOG.warn(""Please try larger maxContentLength for ftp.client.retrieveList(). "" + e);
+        }
+        this.code = 400;
+        return;
+    }
+    FTPFile ftpFile = (FTPFile) list.get(0);
+    this.headers.set(Response.CONTENT_LENGTH, new Long(ftpFile.getSize()).toString());
+    this.headers.set(Response.LAST_MODIFIED, HttpDateFormat.toString(ftpFile.getTimestamp()));
+    this.content = os.toByteArray();
+    if (ftpFile.getTimestamp().getTimeInMillis() <= lastModified) {
+        code = 304;
+        return;
+    }
+    this.code = 200;
+} catch (FtpExceptionCanNotHaveDataConnection e) {
+    if (FTPReply.isPositiveCompletion(ftp.client.cwd(path))) {
+        this.headers.set(Response.LOCATION, path + ""/"");
+        this.code = 300;
+    } else {
+        this.code = 404;
+    }
+} catch (FtpExceptionUnknownForcedDataClose e) {
+    if (Ftp.LOG.isWarnEnabled()) {
+        Ftp.LOG.warn(""Unrecognized reply after forced close of data channel. "" + ""If this is acceptable, please modify Client.java accordingly. "" + e);
+    }
+    this.code = 400;
+}"
+"try {
+    // first get its possible attributes
+    list = new LinkedList<FTPFile>();
+    ftp.client.retrieveList(path, list, ftp.maxContentLength, ftp.parser);
+    FTPFile ftpFile = (FTPFile) list.get(0);
+    this.headers.set(Response.CONTENT_LENGTH, new Long(ftpFile.getSize()).toString());
+    this.headers.set(Response.LAST_MODIFIED, HttpDateFormat.toString(ftpFile.getTimestamp()));
+    // don't retrieve the file if not changed.
+    if (ftpFile.getTimestamp().getTimeInMillis() <= lastModified) {
+        code = 304;
+        return;
+    }
+    os = new ByteArrayOutputStream(ftp.getBufferSize());
+    ftp.client.retrieveFile(path, os, ftp.maxContentLength);
+    this.content = os.toByteArray();
+    // // approximate bytes sent and read
+    // if (this.httpAccounting != null) {
+    // this.httpAccounting.incrementBytesSent(path.length());
+    // this.httpAccounting.incrementBytesRead(this.content.length);
+    // }
+    // http OK
+    this.code = 200;
+} catch (FtpExceptionControlClosedByForcedDataClose e) {
+    if ((ftp.followTalk) && (Ftp.LOG.isInfoEnabled())) {
+        Ftp.LOG.info(""delete client because server cut off control channel: "" + e);
+    }
+    ftp.client = null;
+    if (os == null) {
+        if (Ftp.LOG.isWarnEnabled()) {
+            Ftp.LOG.warn(""Please try larger maxContentLength for ftp.client.retrieveList(). "" + e);
+        }
+        this.code = 400;
+        return;
+    }
+    FTPFile ftpFile = (FTPFile) list.get(0);
+    this.headers.set(Response.CONTENT_LENGTH, new Long(ftpFile.getSize()).toString());
+    this.headers.set(Response.LAST_MODIFIED, HttpDateFormat.toString(ftpFile.getTimestamp()));
+    this.content = os.toByteArray();
+    if (ftpFile.getTimestamp().getTimeInMillis() <= lastModified) {
+        code = 304;
+        return;
+    }
+    this.code = 200;
+} catch (FtpExceptionCanNotHaveDataConnection e) {
+    if (FTPReply.isPositiveCompletion(ftp.client.cwd(path))) {
+        this.headers.set(Response.LOCATION, path + ""/"");
+        this.code = 300;
+    } else {
+        this.code = 404;
+    }
+} catch (FtpExceptionUnknownForcedDataClose e) {
+    if (Ftp.LOG.isWarnEnabled()) {
+        Ftp.LOG.warn(""Unrecognized reply after forced close of data channel. "" + ""If this is acceptable, please modify Client.java accordingly. "" + e);
+    }
+    this.code = 400;
+}"
+"try {
+    // change to that dir first
+    if (!FTPReply.isPositiveCompletion(ftp.client.cwd(path))) {
+        // http Not Found
+        this.code = 404;
+        return;
+    }
+    // fixme, should we do ftp.client.cwd(""/""), back to top dir?
+    ftp.client.retrieveList(null, list, ftp.maxContentLength, ftp.parser);
+    this.content = list2html(list, path, ""/"".equals(path) ? false : true);
+    this.headers.set(Response.CONTENT_LENGTH, new Integer(this.content.length).toString());
+    this.headers.set(Response.CONTENT_TYPE, ""text/html"");
+    // this.headers.put(""Last-Modified"", null);
+    // // approximate bytes sent and read
+    // if (this.httpAccounting != null) {
+    // this.httpAccounting.incrementBytesSent(path.length());
+    // this.httpAccounting.incrementBytesRead(this.content.length);
+    // }
+    // http OK
+    this.code = 200;
+} catch (FtpExceptionControlClosedByForcedDataClose e) {
+    if ((ftp.followTalk) && (Ftp.LOG.isInfoEnabled())) {
+        Ftp.LOG.info(""delete client because server cut off control channel: "" + e);
+    }
+    ftp.client = null;
+    this.content = list2html(list, path, ""/"".equals(path) ? false : true);
+    this.headers.set(Response.CONTENT_LENGTH, new Integer(this.content.length).toString());
+    this.headers.set(Response.CONTENT_TYPE, ""text/html"");
+    this.code = 200;
+} catch (FtpExceptionUnknownForcedDataClose e) {
+    if (Ftp.LOG.isWarnEnabled()) {
+        Ftp.LOG.warn(""Unrecognized reply after forced close of data channel. "" + ""If this is acceptable, please modify Client.java accordingly. "" + e);
+    }
+    this.code = 400;
+} catch (FtpExceptionCanNotHaveDataConnection e) {
+    if (Ftp.LOG.isWarnEnabled()) {
+        Ftp.LOG.warn("""" + e);
+    }
+    this.code = 500;
+}"
+"try {
+    // change to that dir first
+    if (!FTPReply.isPositiveCompletion(ftp.client.cwd(path))) {
+        // http Not Found
+        this.code = 404;
+        return;
+    }
+    // fixme, should we do ftp.client.cwd(""/""), back to top dir?
+    ftp.client.retrieveList(null, list, ftp.maxContentLength, ftp.parser);
+    this.content = list2html(list, path, ""/"".equals(path) ? false : true);
+    this.headers.set(Response.CONTENT_LENGTH, new Integer(this.content.length).toString());
+    this.headers.set(Response.CONTENT_TYPE, ""text/html"");
+    // this.headers.put(""Last-Modified"", null);
+    // // approximate bytes sent and read
+    // if (this.httpAccounting != null) {
+    // this.httpAccounting.incrementBytesSent(path.length());
+    // this.httpAccounting.incrementBytesRead(this.content.length);
+    // }
+    // http OK
+    this.code = 200;
+} catch (FtpExceptionControlClosedByForcedDataClose e) {
+    if ((ftp.followTalk) && (Ftp.LOG.isInfoEnabled())) {
+        Ftp.LOG.info(""delete client because server cut off control channel: "" + e);
+    }
+    ftp.client = null;
+    this.content = list2html(list, path, ""/"".equals(path) ? false : true);
+    this.headers.set(Response.CONTENT_LENGTH, new Integer(this.content.length).toString());
+    this.headers.set(Response.CONTENT_TYPE, ""text/html"");
+    this.code = 200;
+} catch (FtpExceptionUnknownForcedDataClose e) {
+    if (Ftp.LOG.isWarnEnabled()) {
+        Ftp.LOG.warn(""Unrecognized reply after forced close of data channel. "" + ""If this is acceptable, please modify Client.java accordingly. "" + e);
+    }
+    this.code = 400;
+} catch (FtpExceptionCanNotHaveDataConnection e) {
+    if (Ftp.LOG.isWarnEnabled()) {
+        Ftp.LOG.warn("""" + e);
+    }
+    this.code = 500;
+}"
+"try {
+    scfilters.injectedScore(CrawlDbUpdateUtil.dummyURL, injected);
+} catch (ScoringFilterException e) {
+    LOG.error(StringUtils.stringifyException(e));
+}"
+"try {
+    // change to that dir first
+    if (!FTPReply.isPositiveCompletion(ftp.client.cwd(path))) {
+        // http Not Found
+        this.code = 404;
+        return;
+    }
+    // fixme, should we do ftp.client.cwd(""/""), back to top dir?
+    ftp.client.retrieveList(null, list, ftp.maxContentLength, ftp.parser);
+    this.content = list2html(list, path, ""/"".equals(path) ? false : true);
+    this.headers.set(Response.CONTENT_LENGTH, new Integer(this.content.length).toString());
+    this.headers.set(Response.CONTENT_TYPE, ""text/html"");
+    // this.headers.put(""Last-Modified"", null);
+    // // approximate bytes sent and read
+    // if (this.httpAccounting != null) {
+    // this.httpAccounting.incrementBytesSent(path.length());
+    // this.httpAccounting.incrementBytesRead(this.content.length);
+    // }
+    // http OK
+    this.code = 200;
+} catch (FtpExceptionControlClosedByForcedDataClose e) {
+    if ((ftp.followTalk) && (Ftp.LOG.isInfoEnabled())) {
+        Ftp.LOG.info(""delete client because server cut off control channel: "" + e);
+    }
+    ftp.client = null;
+    this.content = list2html(list, path, ""/"".equals(path) ? false : true);
+    this.headers.set(Response.CONTENT_LENGTH, new Integer(this.content.length).toString());
+    this.headers.set(Response.CONTENT_TYPE, ""text/html"");
+    this.code = 200;
+} catch (FtpExceptionUnknownForcedDataClose e) {
+    if (Ftp.LOG.isWarnEnabled()) {
+        Ftp.LOG.warn(""Unrecognized reply after forced close of data channel. "" + ""If this is acceptable, please modify Client.java accordingly. "" + e);
+    }
+    this.code = 400;
+} catch (FtpExceptionCanNotHaveDataConnection e) {
+    if (Ftp.LOG.isWarnEnabled()) {
+        Ftp.LOG.warn("""" + e);
+    }
+    this.code = 500;
+}"
+"try {
+    newAuth = new HttpBasicAuthentication(realm, conf);
+} catch (HttpAuthenticationException hae) {
+    if (LOG.isTraceEnabled()) {
+        LOG.trace(""HttpBasicAuthentication failed for "" + challenge);
+    }
+}"
+"// non existing protocol
+try {
+    factory.getProtocol(""xyzxyz://somehost"");
+    Assert.fail(""Must throw ProtocolNotFound"");
+} catch (ProtocolNotFound e) {
+} catch (Exception ex) {
+    Assert.fail(""Must not throw any other exception"");
+}"
+"// non existing protocol
+try {
+    factory.getProtocol(""xyzxyz://somehost"");
+    Assert.fail(""Must throw ProtocolNotFound"");
+} catch (ProtocolNotFound e) {
+} catch (Exception ex) {
+    Assert.fail(""Must not throw any other exception"");
+}"
+"// test same object instance
+try {
+    Assert.assertTrue(httpProtocol == factory.getProtocol(""http://somehost""));
+} catch (ProtocolNotFound e) {
+    Assert.fail(""Must not throw any exception"");
+}"

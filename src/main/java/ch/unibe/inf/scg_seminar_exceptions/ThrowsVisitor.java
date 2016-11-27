@@ -47,7 +47,7 @@ public class ThrowsVisitor {
 	                        }
 	                        
 	                        dbManager.addMethodThrowsDeclaration(file.getPath(), 
-																	n.getBegin().line, n.getEnd().line, n.toString(), custom, standard, library, types);
+																	n.getBegin().line, n.getEnd().line, n.toString().replaceAll("\0", ""), custom, standard, library, types);
 	                        
 	                       /* for(ReferenceType methodThrows : n.getThrows()){   	
 	               

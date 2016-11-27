@@ -22,16 +22,17 @@ public class TryCatchVisitor {
                         super.visit(n, arg);
                         
                         int loc_finally = 0;
-    					int loc_catch = 0;
     					
                         boolean custom = false;
                         boolean standard = false;
                         boolean library = false;
+                        boolean finally_block = false;
                         Scanner scanner;
                         String types = "";
                         
     					// get finally
     					if(n.getFinallyBlock() != null ) {
+    						finally_block = true;
                         	scanner = new Scanner(n.getFinallyBlock().toStringWithoutComments());
                         	while (scanner.hasNextLine()) {
                         	  String line = scanner.nextLine();
@@ -46,8 +47,9 @@ public class TryCatchVisitor {
                        
                         // get the type of the caught exceptions
                         for(CatchClause cc : catchClauses) {
-                        	
+                        	int loc_catch = 0;
                         	int loc_counter = 0;
+                        	types = "";
                         	scanner = new Scanner(cc.toStringWithoutComments());
                         	while (scanner.hasNextLine()) {
                         	  String line = scanner.nextLine();
@@ -81,13 +83,23 @@ public class TryCatchVisitor {
                         	if(!custom && !standard) {
                         		library = true;
                         	}
+                        	
+                            // add tc block to db
+        					dbManager.addTryCatch(file.getPath(), n.getBegin().line, n.getEnd().line, 
+        							n.toString().replaceAll("\0", ""), loc_catch, loc_finally, custom, standard, library, types,
+        							catchClauses.size(), finally_block);
+        					loc_finally = 0;
+        					finally_block = false;
+        					custom = false;
+        					standard = false;
+        					library = false;
                         }
- 
-                        // add tc block to db
-    					dbManager.addTryCatch(file.getPath(), n.getBegin().line, n.getEnd().line, 
-    							n.toString(), loc_catch, loc_finally, custom, standard, library, types,
-    							catchClauses.size(), (n.getFinallyBlock() != null));
-                        
+                        if(catchClauses.size()==0) {
+        					dbManager.addTryCatch(file.getPath(), n.getBegin().line, n.getEnd().line, 
+        							n.toString().replaceAll("\0", ""), 0, loc_finally, custom, standard, library, types,
+        							catchClauses.size(), finally_block);
+                        }
+
                     }
                 }.visit(JavaParser.parse(file), null);
             } catch (Exception e) {

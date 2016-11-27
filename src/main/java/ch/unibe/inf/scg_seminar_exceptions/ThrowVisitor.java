@@ -61,7 +61,7 @@ public class ThrowVisitor {
                     		library = true;
                     	}
                         
-                        dbManager.addThrow(file.getPath(), n.getBegin().line, n.toString(), className, 
+                        dbManager.addThrow(file.getPath(), n.getBegin().line, n.toString().replaceAll("\0", ""), className, 
                         		custom, standard, library);
                     }
                 }.visit(JavaParser.parse(file), null);
