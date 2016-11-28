@@ -1,4 +1,4 @@
-SELECT b1.project_name, b1.commit_timestamp, b1.commit_hash, b1.code_lines as loc, mc, ms, ml, me, ma, cc, cs, cl, ca, fa, tc, ts, tl, ta, tf, uch, uunch, loc_catch, loc_finally, caught_exception
+SELECT b1.project_name, b1.commit_timestamp, b1.commit_hash, b1.code_lines as loc, mc, ms, ml, me, ma, cc, cs, cl, ca, fa, tc, ts, tl, ta, tf,tsm, uch, uunch, loc_catch, loc_finally, caught_exception
 	FROM (SELECT project_name, commit_timestamp, commit_hash, code_lines,
         count(t1.id) as ma,
 		count(CASE WHEN custom THEN 1 END) as mc,
