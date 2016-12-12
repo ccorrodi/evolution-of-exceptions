@@ -35,8 +35,6 @@ public class ThrowVisitor {
 	                		
 	                		if(m.find()) {
 	                			stringLiteral = m.group(1);
-	                			System.out.println("+++"+n.toStringWithoutComments());
-	                			System.out.println(stringLiteral);
 	                		}
                         }
                         String exprClass = n.getExpr().getClass().getSimpleName();
