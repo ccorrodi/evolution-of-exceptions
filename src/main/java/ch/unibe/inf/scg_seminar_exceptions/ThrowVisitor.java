@@ -2,8 +2,13 @@ package ch.unibe.inf.scg_seminar_exceptions;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import com.github.javaparser.JavaParser;
+import com.github.javaparser.ast.expr.Expression;
+import com.github.javaparser.ast.expr.MethodCallExpr;
+import com.github.javaparser.ast.expr.ObjectCreationExpr;
 import com.github.javaparser.ast.stmt.ThrowStmt;
 import com.github.javaparser.ast.visitor.VoidVisitorAdapter;
 
@@ -20,9 +25,20 @@ public class ThrowVisitor {
                         super.visit(n, arg);
 
                         boolean stringArg = false;
+                        String stringLiteral = "";
                         
                         stringArg = n.toStringWithoutComments().contains("\"");
-
+             
+                        if(stringArg) {
+	                		Pattern p = Pattern.compile("[aA-zZ 0-9]*(?<!\\()\\((.*)\\)(?!\\)).*");
+	                		Matcher m = p.matcher(n.toStringWithoutComments());
+	                		
+	                		if(m.find()) {
+	                			stringLiteral = m.group(1);
+	                			System.out.println("+++"+n.toStringWithoutComments());
+	                			System.out.println(stringLiteral);
+	                		}
+                        }
                         String exprClass = n.getExpr().getClass().getSimpleName();
                         String className = "";
                         if(exprClass.equals("ObjectCreationExpr")){
@@ -67,7 +83,7 @@ public class ThrowVisitor {
                     	}
                         
                         dbManager.addThrow(file.getPath(), n.getBegin().line, n.toString().replaceAll("\0", ""), className, 
-                        		custom, standard, library, stringArg);
+                        		custom, standard, library, stringArg,stringLiteral);
                     }
                 }.visit(JavaParser.parse(file), null);
             } catch (Exception e) {

@@ -230,13 +230,13 @@ public class DatabaseManager {
 		return id;
 	}
 	
-	public void addThrow(String path, int start_line, String source, String exceptionClass, boolean custom, boolean standard, boolean library, boolean stringArg) {
+	public void addThrow(String path, int start_line, String source, String exceptionClass, boolean custom, boolean standard, boolean library, boolean stringArg, String stringLiteral) {
 		
 		try {
 			openDbConnection();
 			PreparedStatement statement = connection.prepareStatement("insert into throws "
-					+ "(commit_id, path, start_line, source, exception_class, custom, standard, library, string_arg)"
-					+ " values(?,?,?,?,?,?,?,?,?)");
+					+ "(commit_id, path, start_line, source, exception_class, custom, standard, library, string_arg, string_literal)"
+					+ " values(?,?,?,?,?,?,?,?,?,?)");
 			statement.setLong(1, commit_id);
 			statement.setString(2, path);
 			statement.setInt(3, start_line);
@@ -246,6 +246,7 @@ public class DatabaseManager {
 			statement.setBoolean(7, standard);
 			statement.setBoolean(8, library);
 			statement.setBoolean(9, stringArg);
+			statement.setString(10, stringLiteral);
 			statement.execute();
 			
 			closeDbConnection();
@@ -359,7 +360,8 @@ public class DatabaseManager {
     			+ "custom BOOLEAN,"
     			+ "standard BOOLEAN,"
     			+ "library BOOLEAN,"
-    			+ "string_arg BOOLEAN)");
+    			+ "string_arg BOOLEAN,"
+    			+ "string_literal TEXT)");
     	   
     		statement.execute("create table if not exists returnnull ("
        	   		+ "id SERIAL PRIMARY KEY,"
