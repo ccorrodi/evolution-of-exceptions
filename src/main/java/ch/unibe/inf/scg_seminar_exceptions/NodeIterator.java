@@ -3,21 +3,21 @@ package ch.unibe.inf.scg_seminar_exceptions;
 import com.github.javaparser.ast.Node;
 
 public class NodeIterator {
-    public interface NodeHandler {
-        boolean handle(Node node);
-    }
+	public interface NodeHandler {
+		boolean handle(Node node);
+	}
 
-    private NodeHandler nodeHandler;
+	private NodeHandler nodeHandler;
 
-    public NodeIterator(NodeHandler nodeHandler) {
-        this.nodeHandler = nodeHandler;
-    }
+	public NodeIterator(NodeHandler nodeHandler) {
+		this.nodeHandler = nodeHandler;
+	}
 
-    public void explore(Node node) {
-        if (nodeHandler.handle(node)) {
-            for (Node child : node.getChildrenNodes()) {
-                explore(child);
-            }
-        }
-    }
+	public void explore(Node node) {
+		if (nodeHandler.handle(node)) {
+			for (Node child : node.getChildrenNodes()) {
+				explore(child);
+			}
+		}
+	}
 }

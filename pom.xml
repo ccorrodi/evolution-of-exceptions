@@ -42,7 +42,8 @@
       <resource>
         <directory>src/resources</directory>
         <includes>
-          <include>*.txt</include>
+            <include>*.txt</include>
+            <include>configuration.properties</include>
         </includes>
       </resource>
     </resources>

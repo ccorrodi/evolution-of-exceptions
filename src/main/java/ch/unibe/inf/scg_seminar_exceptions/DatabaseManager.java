@@ -8,8 +8,15 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Timestamp;
 
+/**
+ * Maintains connection to postgres database and provides methods for writing
+ * to the database.
+ * <p>
+ * Also contains fields representing some commit and related information, which
+ * will be used for writing to the database.
+ */
 public class DatabaseManager {
-	
+
 	private static DatabaseManager dbManagerInstance = null;
 	private static Connection connection = null;
 	private String timestamp;
@@ -20,47 +27,47 @@ public class DatabaseManager {
 	private int blankLines;
 	private int commentLines;
 	private int codeLines;
-	
-	public DatabaseManager() {
-        // create a database connection
-	}
-	
-	private void openDbConnection() throws SQLException{
-		if(connection == null){
-	        connection = DriverManager.getConnection("jdbc:postgresql://localhost:5432/seminar",
-	                "seminar", "seminar");
-		}
-	}
-	
-	private void closeDbConnection() throws SQLException{
-		if(connection != null){
-			connection.close();
-	        connection = null;
-		}
-	}
-	
-	public static synchronized DatabaseManager getInstance() {
-        if (dbManagerInstance == null){
-        	dbManagerInstance = new DatabaseManager();
-        	try {
-            	Class.forName("org.postgresql.Driver");
 
-            	dbManagerInstance.createTables();
-        	} catch (Exception e) {
+	public DatabaseManager() {
+		// create a database connection
+	}
+
+	private void openDbConnection() throws SQLException {
+		if (connection == null) {
+			connection = DriverManager.getConnection(Settings.databaseConnection(),
+					Settings.databaseUser(), Settings.databasePassword());
+		}
+	}
+
+	private void closeDbConnection() throws SQLException {
+		if (connection != null) {
+			connection.close();
+			connection = null;
+		}
+	}
+
+	public static synchronized DatabaseManager getInstance() {
+		if (dbManagerInstance == null) {
+			dbManagerInstance = new DatabaseManager();
+			try {
+				Class.forName("org.postgresql.Driver");
+
+				dbManagerInstance.createTables();
+			} catch (Exception e) {
 				// TODO: handle exception
 			}
-        }
-        return dbManagerInstance;
+		}
+		return dbManagerInstance;
 	}
-	
+
 	public void addProject() {
 		try {
 			openDbConnection();
-			
+
 			Statement queryStmt = connection.createStatement();
-			
+
 			ResultSet rs = queryStmt.executeQuery("SELECT id FROM projects WHERE project_name = '" + project + "';");
-			while(rs.next()) {
+			while (rs.next()) {
 				project_id = rs.getInt("id");
 				return;
 			}
@@ -68,7 +75,7 @@ public class DatabaseManager {
 			statement.setString(1, project);
 			statement.setString(2, getClass().getPackage().getImplementationVersion());
 			statement.execute();
-			
+
 			statement.getGeneratedKeys().next();
 			project_id = statement.getGeneratedKeys().getLong(1);
 			closeDbConnection();
@@ -76,7 +83,10 @@ public class DatabaseManager {
 			e.printStackTrace();
 		}
 	}
-	
+
+	/**
+	 * Insert the commit currently stured in our private fields into the 'commits' table.
+	 */
 	public void addCommit() {
 		try {
 			openDbConnection();
@@ -85,8 +95,8 @@ public class DatabaseManager {
 					+ "code_lines, project_name) values(?,?,?,?,?,?,?)", Statement.RETURN_GENERATED_KEYS);
 			statement.setLong(1, project_id);
 			statement.setString(2, commit);
-			
-			statement.setTimestamp(3, new Timestamp((long)Integer.parseInt(timestamp)*1000));
+
+			statement.setTimestamp(3, new Timestamp((long) Integer.parseInt(timestamp) * 1000));
 			statement.setInt(4, blankLines);
 			statement.setInt(5, commentLines);
 			statement.setInt(6, codeLines);
@@ -99,7 +109,7 @@ public class DatabaseManager {
 			e.printStackTrace();
 		}
 	}
-	
+
 	public void addReturnNull(String path, int line, String source) {
 		try {
 			openDbConnection();
@@ -110,13 +120,13 @@ public class DatabaseManager {
 			statement.setInt(3, line);
 			statement.setString(4, source);
 			statement.execute();
-			
+
 			closeDbConnection();
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
 	}
-	
+
 	public void addExceptionClass(String path, String name, String type, String source) {
 		try {
 			openDbConnection();
@@ -128,13 +138,13 @@ public class DatabaseManager {
 			statement.setString(4, source);
 			statement.setString(5, type);
 			statement.execute();
-			
+
 			closeDbConnection();
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
 	}
-	
+
 	public void addParserException(String path, String stacktrace, String type, String source) {
 		try {
 			openDbConnection();
@@ -146,13 +156,13 @@ public class DatabaseManager {
 			statement.setString(4, type);
 			statement.setString(5, source);
 			statement.execute();
-			
+
 			closeDbConnection();
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
 	}
-	
+
 	public long addMethodThrowsDeclaration(String path, int start_line, int end_line, String source, boolean custom, boolean standard, boolean library, String types) {
 		long methodThrowsDeclarationId = 0;
 		try {
@@ -169,20 +179,28 @@ public class DatabaseManager {
 			statement.setBoolean(7, standard);
 			statement.setBoolean(8, library);
 			statement.setString(9, types);
-			
+
 			statement.execute();
 //			
 //			statement.getGeneratedKeys().next();
 //			methodThrowsDeclarationId = statement.getGeneratedKeys().getLong(1);
-			
+
 			closeDbConnection();
 		} catch (Exception e) {
 			e.printStackTrace();
-		} 
-		
+		}
+
 		return methodThrowsDeclarationId;
 	}
-	
+
+	/**
+	 * CC: This is never used. Do we need it? Do we need the method_throws_declaration_Types table?
+	 * See also addMethodThrowsDeclaration above.
+	 *
+	 * @param methodThrowsDeclarationId
+	 * @param type
+	 * @param userdefined
+	 */
 	public void addMethodThrowsDeclationType(long methodThrowsDeclarationId, String type, boolean userdefined) {
 		try {
 
@@ -193,17 +211,17 @@ public class DatabaseManager {
 			statement.setString(2, type);
 			statement.setBoolean(3, userdefined);
 			statement.execute();
-			
+
 			closeDbConnection();
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
 	}
-	
-	
+
+
 	public long addTryCatch(String path, int start_line, int end_line, String source, int loc_catch, int loc_finally, boolean custom, boolean standard, boolean library, String types, int catch_count, boolean finally_block) {
 		long id = 0;
-		try {    
+		try {
 			openDbConnection();
 			PreparedStatement statement = connection.prepareStatement("insert into trycatchs (commit_id, "
 					+ "path, start_line, end_line, source, loc_catch, loc_finally, custom, standard, library,types, catch_count, finally_block) values(?,?,?,?,?,?,?,?,?,?,?,?,?)");
@@ -222,16 +240,17 @@ public class DatabaseManager {
 			statement.setBoolean(13, finally_block);
 			statement.execute();
 			closeDbConnection();
-			
+
 		} catch (Exception e) {
 			e.printStackTrace();
-		} 
-		
+		}
+
 		return id;
 	}
-	
+
+
 	public void addThrow(String path, int start_line, String source, String exceptionClass, boolean custom, boolean standard, boolean library, boolean stringArg, String stringLiteral) {
-		
+
 		try {
 			openDbConnection();
 			PreparedStatement statement = connection.prepareStatement("insert into throws "
@@ -248,13 +267,20 @@ public class DatabaseManager {
 			statement.setBoolean(9, stringArg);
 			statement.setString(10, stringLiteral);
 			statement.execute();
-			
+
 			closeDbConnection();
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
 	}
-	
+
+	/**
+	 * CC: This is never used. Do we need it? What are tcbexceptions?
+	 *
+	 * @param tcb_id
+	 * @param className
+	 * @param userdefined
+	 */
 	public void addTcbException(long tcb_id, String className, boolean userdefined) {
 		try {
 			openDbConnection();
@@ -265,129 +291,119 @@ public class DatabaseManager {
 			statement.setString(2, className);
 			statement.setBoolean(3, userdefined);
 			statement.execute();
-			
+
 			closeDbConnection();
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
 	}
-	
-	public void createTables() throws Exception{
+
+	public void createTables() throws Exception {
 		openDbConnection();
-    	Statement statement = connection.createStatement();
-    	statement.setQueryTimeout(30);  // set timeout to 30 sec.
-       
-    	try
-    	{
-    		statement.execute("create table if not exists projects ("
-    	   		+ "id SERIAL PRIMARY KEY,"
-    	   		+ "project_name TEXT,"
-    	   		+ "timestamp TIMESTAMP default current_timestamp,"
-    	   		+ "parser_version TEXT)");
+		Statement statement = connection.createStatement();
+		statement.setQueryTimeout(30);  // set timeout to 30 sec.
 
-    		statement.execute("create table if not exists parser_exceptions ("
-        	   	+ "commit_id INTEGER,"
-        	   	+ "path TEXT,"
-        	   	+ "stacktrace TEXT,"
-        	   	+ "type TEXT,"
-        	   	+ "source TEXT)");
-    	   
-//    		statement.execute("create table if not exists tcbexceptions ("
-//    			+ "id SERIAL PRIMARY KEY,"
-//    			+ "tcb_id INTEGER,"
-//    			+ "class_name TEXT,"
-//    			+ "userdefined BOOLEAN)");
-    		
-    		statement.execute("create table if not exists commits ("
-    	   		+ "id SERIAL PRIMARY KEY,"
-    	   		+ "project_id INTEGER,"
-    	   		+ "commit_hash TEXT,"
-    	   		+ "commit_timestamp TIMESTAMP, "
-    	   		+ "blank_lines INTEGER,"
-    	   		+ "comment_lines INTEGER,"
-    	   		+ "code_lines INTEGER,"
-    	   		+ "project_name TEXT)");
-    	   
-    		statement.execute("create table if not exists exception_classes ("
-    			+ "id SERIAL PRIMARY KEY,"
-    	   		+ "commit_id INTEGER,"
-    	   		+ "source TEXT,"
-    	   		+ "name TEXT,"
-    	   		+ "path TEXT,"
-    	   		+ "type TEXT)");
-    	   
-    		statement.execute("create table if not exists trycatchs ("
-    			+ "id SERIAL PRIMARY KEY,"
-    	   		+ "commit_id INTEGER,"
-    	   		+ "path TEXT,"
-    	   		+ "start_line INTEGER,"
-    	   		+ "end_line INTEGER,"
-    	   		+ "source TEXT,"
-    	   		+ "loc_catch INTEGER,"
-    	   		+ "loc_finally INTEGER,"
-    	   		+ "custom BOOLEAN,"
-    	   		+ "standard BOOLEAN,"
-    	   		+ "library BOOLEAN,"
-    	   		+ "types TEXT,"
-    	   		+ "catch_count INTEGER,"
-    	   		+ "finally_block BOOLEAN)");
-    	   
-    		statement.execute("create table if not exists method_throws_declarations ("
-    	   		+ "id SERIAL PRIMARY KEY,"
-    	   		+ "commit_id INTEGER,"
-    	   		+ "path TEXT,"
-    	   		+ "start_line INTEGER,"
-    	   		+ "end_line INTEGER,"
-    	   		+ "source TEXT,"
-    	   		+ "custom BOOLEAN,"
-    	   		+ "standard BOOLEAN,"
-    	   		+ "library BOOLEAN,"
-    	   		+ "types TEXT)");
-    		
-//    		statement.execute("create table if not exists method_throws_declaration_types ("
-//    				+ "id SERIAL PRIMARY KEY,"
-//    				+ "method_throws_declaration_id INTEGER,"
-//    				+ "type TEXT,"
-//    				+ "userdefined BOOLEAN)");
-    		
-    		statement.execute("create table if not exists throws ("
-    			+ "id SERIAL PRIMARY KEY,"
-    			+ "commit_id INTEGER,"
-    			+ "exception_class TEXT,"
-    			+ "path TEXT,"
-    			+ "start_line INTEGER,"
-    			+ "source TEXT,"
-    			+ "custom BOOLEAN,"
-    			+ "standard BOOLEAN,"
-    			+ "library BOOLEAN,"
-    			+ "string_arg BOOLEAN,"
-    			+ "string_literal TEXT)");
-    	   
-    		statement.execute("create table if not exists returnnull ("
-       	   		+ "id SERIAL PRIMARY KEY,"
-       	   		+ "commit_id INTEGER,"
-       	   		+ "path TEXT,"
-       	   		+ "line INTEGER,"
-       	   		+ "source TEXT)");
-    	   
-    		/*statement.execute("create table if not exists catch_types ("
-    	   		+ "trycatch_id INTEGER,"
-    	   		+ "exception_class_id INTEGER)");*/
-    	   
-       }
-       catch(SQLException e)
-       {
-         // if the error message is "out of memory", 
-         // it probably means no database file is found
-         System.err.println(e.getMessage());
-       }
-       finally
-       {
-    	   closeDbConnection();
-       }
-   }
+		try {
+			statement.execute("create table if not exists projects ("
+					+ "id SERIAL PRIMARY KEY,"
+					+ "project_name TEXT,"
+					+ "timestamp TIMESTAMP default current_timestamp,"
+					+ "parser_version TEXT)");
 
-	public void setVersion(String timestamp, String commit, String project, String blankLines, String commentLines, String codeLines ) {
+			statement.execute("create table if not exists parser_exceptions ("
+					+ "commit_id INTEGER,"
+					+ "path TEXT,"
+					+ "stacktrace TEXT,"
+					+ "type TEXT,"
+					+ "source TEXT)");
+
+			statement.execute("create table if not exists commits ("
+					+ "id SERIAL PRIMARY KEY,"
+					+ "project_id INTEGER,"
+					+ "commit_hash TEXT,"
+					+ "commit_timestamp TIMESTAMP, "
+					+ "blank_lines INTEGER,"
+					+ "comment_lines INTEGER,"
+					+ "code_lines INTEGER,"
+					+ "project_name TEXT)");
+
+			statement.execute("create table if not exists exception_classes ("
+					+ "id SERIAL PRIMARY KEY,"
+					+ "commit_id INTEGER,"
+					+ "source TEXT,"
+					+ "name TEXT,"
+					+ "path TEXT,"
+					+ "type TEXT)");
+
+			statement.execute("create table if not exists trycatchs ("
+					+ "id SERIAL PRIMARY KEY,"
+					+ "commit_id INTEGER,"
+					+ "path TEXT,"
+					+ "start_line INTEGER,"
+					+ "end_line INTEGER,"
+					+ "source TEXT,"
+					+ "loc_catch INTEGER,"
+					+ "loc_finally INTEGER,"
+					+ "custom BOOLEAN,"
+					+ "standard BOOLEAN,"
+					+ "library BOOLEAN,"
+					+ "types TEXT,"
+					+ "catch_count INTEGER,"
+					+ "finally_block BOOLEAN)");
+
+			statement.execute("create table if not exists method_throws_declarations ("
+					+ "id SERIAL PRIMARY KEY,"
+					+ "commit_id INTEGER,"
+					+ "path TEXT,"
+					+ "start_line INTEGER,"
+					+ "end_line INTEGER,"
+					+ "source TEXT,"
+					+ "custom BOOLEAN,"
+					+ "standard BOOLEAN,"
+					+ "library BOOLEAN,"
+					+ "types TEXT)");
+
+			statement.execute("create table if not exists throws ("
+					+ "id SERIAL PRIMARY KEY,"
+					+ "commit_id INTEGER,"
+					+ "exception_class TEXT,"
+					+ "path TEXT,"
+					+ "start_line INTEGER,"
+					+ "source TEXT,"
+					+ "custom BOOLEAN,"
+					+ "standard BOOLEAN,"
+					+ "library BOOLEAN,"
+					+ "string_arg BOOLEAN,"
+					+ "string_literal TEXT)");
+
+			statement.execute("create table if not exists returnnull ("
+					+ "id SERIAL PRIMARY KEY,"
+					+ "commit_id INTEGER,"
+					+ "path TEXT,"
+					+ "line INTEGER,"
+					+ "source TEXT)");
+		} catch (SQLException e) {
+			// if the error message is "out of memory",
+			// it probably means no database file is found
+			System.err.println(e.getMessage());
+		} finally {
+			closeDbConnection();
+		}
+	}
+
+	/**
+	 * Set data for a line in the 'commits' table. Contains information
+	 * related to the project at a given commit and seems to correspond
+	 * to a 'cloc' call.
+	 *
+	 * @param timestamp
+	 * @param commit
+	 * @param project
+	 * @param blankLines
+	 * @param commentLines
+	 * @param codeLines
+	 */
+	public void setVersion(String timestamp, String commit, String project, String blankLines, String commentLines, String codeLines) {
 		this.commit = commit;
 		this.timestamp = timestamp;
 		this.project = project;

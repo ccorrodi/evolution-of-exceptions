@@ -7,26 +7,26 @@ import java.io.InputStreamReader;
 import java.util.ArrayList;
 
 public class JavaExceptionNames {
-	
+
 	public ArrayList<String> getExceptionNamesFrom(String fileName) {
 		ArrayList<String> exceptionNames = new ArrayList<String>();
-		
+
 		InputStream in = ClassLoader.getSystemClassLoader().getResourceAsStream(fileName);
 
 
-	    try {
+		try {
 			BufferedReader br = new BufferedReader(new InputStreamReader(in, "UTF-8"));
-		    String line;
-		    while ((line = br.readLine()) != null) {
-		       exceptionNames.add(line);
-		    }
+			String line;
+			while ((line = br.readLine()) != null) {
+				exceptionNames.add(line);
+			}
 			br.close();
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		
-		return exceptionNames; 
+
+		return exceptionNames;
 	}
-	
+
 }

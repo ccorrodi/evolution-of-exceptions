@@ -4,7 +4,7 @@ public class ExceptionClass {
 	private String name;
 	private boolean checked;
 	private Scope scope;
-	
+
 	public ExceptionClass(String name, boolean checked, Scope scope) {
 		this.name = name;
 		this.checked = checked;

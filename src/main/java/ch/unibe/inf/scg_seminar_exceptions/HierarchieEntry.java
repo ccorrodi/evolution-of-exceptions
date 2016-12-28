@@ -6,8 +6,8 @@ import java.util.Iterator;
 import com.github.javaparser.ast.Node;
 import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
 
-public class HierarchieEntry implements Iterator<HierarchieEntry>{
-	
+public class HierarchieEntry implements Iterator<HierarchieEntry> {
+
 	private File file;
 	private Node node;
 	private String className;
@@ -15,14 +15,14 @@ public class HierarchieEntry implements Iterator<HierarchieEntry>{
 
 	public HierarchieEntry(Node node, File file) {
 		this.node = node;
-		this.className = ((ClassOrInterfaceDeclaration)node).getName();
+		this.className = ((ClassOrInterfaceDeclaration) node).getName();
 		this.file = file;
 	}
-	
+
 	public HierarchieEntry(String className) {
 		this.className = className;
 	}
-	
+
 	public Node getNode() {
 		return node;
 	}
@@ -41,12 +41,12 @@ public class HierarchieEntry implements Iterator<HierarchieEntry>{
 
 	public HierarchieEntry getParent() {
 
-		if(parent == null){
-			try{
-				if(!((ClassOrInterfaceDeclaration)node).getExtends().isEmpty()){
-					return new HierarchieEntry(((ClassOrInterfaceDeclaration)node).getExtends().get(0).toString());
+		if (parent == null) {
+			try {
+				if (!((ClassOrInterfaceDeclaration) node).getExtends().isEmpty()) {
+					return new HierarchieEntry(((ClassOrInterfaceDeclaration) node).getExtends().get(0).toString());
 				}
-			} catch (Exception e){
+			} catch (Exception e) {
 				return null;
 			}
 
@@ -69,7 +69,7 @@ public class HierarchieEntry implements Iterator<HierarchieEntry>{
 
 	@Override
 	public boolean hasNext() {
-		if(getParent()==null){
+		if (getParent() == null) {
 			return false;
 		} else {
 			return true;
