@@ -8,27 +8,38 @@ if [ -z $JAVA ]; then
     JAVA=java
 fi
 
+if [ -z $LOCAL_PROJECTS ]; then
+    LOCAL_PROJECTS=$PWD/local_projects
+fi
+
+if [ -z $WORKDIR]; then
+    WORKDIR=$PWD/workdir
+fi
+
+if [ -z $INTERVAL_MONTHS]; then
+    INTERVAL_MONTHS=3
+fi
+
 repo_list="$1"
 home_dir=`pwd`
-interval_months=3
 
-cd github-projects
+mkdir $WORKDIR
+cd $WORKDIR
 
 # read from repo list (see line at end of while)
 while read current_repo; do
 	echo $current_repo
-
-    # clone in github-projects/
-    # TODO: do not clone, but checkout main branch (not always master!)
-	cd $home_dir/github-projects
-	git clone $current_repo
 
     # get project name
 	basename=$(basename $current_repo)
 	foldername=$basename
 	#foldername=${basename%.*} # what? how's that different from basename?
 
-	cd $home_dir/github-projects/$foldername
+    # copy from local projects directory
+	cp -r $LOCAL_PROJECTS/$foldername .
+
+
+	cd $WORKDIR/$foldername
 
     # get hash of current HEAD, the url of the repository,
     # and a list of 'timestamp:commit_hash'
@@ -48,12 +59,12 @@ while read current_repo; do
 		current=(${line//:/ })
 
 		# fill the database if we are either at the most recent commit (i.e., the commit that
-		# is checked out after the clone) or at least $interval_months before the commit that
+		# is checked out after the clone) or at least $INTERVAL_MONTHS before the commit that
 		# was checked out in the last iteration
-		if $initial || ((${current[0]}<(last_checkout - 60*60*24*31*$interval_months))) ; then
+		if $initial || ((${current[0]}<(last_checkout - 60*60*24*31*$INTERVAL_MONTHS))) ; then
 			initial=false
 
-			cd $home_dir/github-projects/$foldername
+			cd $WORKDIR/$foldername
 			git checkout ${current[1]}
 
 			# use cloc for getting Java stats, put it in an array
@@ -65,7 +76,7 @@ while read current_repo; do
 			# path timestamp commithash foldername blanklines commentlines codelines
 			cd $home_dir
 
-			path=$home_dir/github-projects/$foldername
+			path=$WORKDIR/$foldername
 			timestamp=${current[0]}
 			commithash=${current[1]}
 			foldername=$foldername
