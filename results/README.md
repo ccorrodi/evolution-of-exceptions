@@ -28,6 +28,10 @@
 
 *Ta*: The number of all throw statements
 
+*Tsm*: The number of throw statements with standard exceptions with string parameters (error messages)
+
+*Tf*: The number of throw statements, the type of its exception parameter couldn't be determined
+
 *Uch*: The number of custom checked exceptions
 
 *Uunch*: The number of custom un-checked exceptions
