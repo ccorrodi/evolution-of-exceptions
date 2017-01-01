@@ -29,21 +29,31 @@ public class DatabaseManager {
 	private int codeLines;
 
 	public DatabaseManager() {
-		// create a database connection
+		try {
+			openConnection();
+		} catch (SQLException e) {
+			Util.logException(e);
+		}
 	}
 
-	private void openDbConnection() throws SQLException {
+	public void openConnection() throws SQLException {
 		if (connection == null) {
 			connection = DriverManager.getConnection(Settings.databaseConnection(),
 					Settings.databaseUser(), Settings.databasePassword());
 		}
 	}
 
-	private void closeDbConnection() throws SQLException {
-		if (connection != null) {
-			connection.close();
-			connection = null;
+	public void closeConnection() throws SQLException {
+		try {
+			if (connection != null) {
+				connection.close();
+				connection = null;
+			}
+		} catch (SQLException e) {
+			Util.log.info("Could not close database connection.");
+			Util.logException(e);
 		}
+
 	}
 
 	public static synchronized DatabaseManager getInstance() {
@@ -63,8 +73,6 @@ public class DatabaseManager {
 
 	public void addProject() {
 		try {
-			openDbConnection();
-
 			Statement queryStmt = connection.createStatement();
 
 			ResultSet rs = queryStmt.executeQuery("SELECT id FROM projects WHERE project_name = '" + project + "';");
@@ -81,8 +89,6 @@ public class DatabaseManager {
 			project_id = statement.getGeneratedKeys().getLong(1);
 		} catch (Exception e) {
 			Util.logException(e);
-		} finally {
-			closeConnection();
 		}
 	}
 
@@ -91,7 +97,6 @@ public class DatabaseManager {
 	 */
 	public void addCommit() {
 		try {
-			openDbConnection();
 			PreparedStatement statement = connection.prepareStatement("insert into commits (project_id, "
 					+ "commit_hash, commit_timestamp, blank_lines, comment_lines, "
 					+ "code_lines, project_name) values(?,?,?,?,?,?,?)", Statement.RETURN_GENERATED_KEYS);
@@ -108,14 +113,11 @@ public class DatabaseManager {
 			commit_id = statement.getGeneratedKeys().getLong(1);
 		} catch (Exception e) {
 			Util.logException(e);
-		} finally {
-			closeConnection();
 		}
 	}
 
 	public void addReturnNull(String path, int line, String source) {
 		try {
-			openDbConnection();
 			PreparedStatement statement = connection.prepareStatement("insert into returnnull (commit_id, "
 					+ "path, line, source) values(?,?,?,?)");
 			statement.setLong(1, commit_id);
@@ -125,14 +127,11 @@ public class DatabaseManager {
 			statement.execute();
 		} catch (Exception e) {
 			Util.logException(e);
-		} finally {
-			closeConnection();
 		}
 	}
 
 	public void addExceptionClass(String path, String name, String type, String source) {
 		try {
-			openDbConnection();
 			PreparedStatement statement = connection.prepareStatement("insert into exception_classes (commit_id, "
 					+ "path, name, source,type) values(?,?,?,?,?)");
 			statement.setLong(1, commit_id);
@@ -143,14 +142,11 @@ public class DatabaseManager {
 			statement.execute();
 		} catch (Exception e) {
 			Util.logException(e);
-		} finally {
-			closeConnection();
 		}
 	}
 
 	public void addParserException(String path, String stacktrace, String type, String source) {
 		try {
-			openDbConnection();
 			PreparedStatement statement = connection.prepareStatement("insert into parser_exceptions (commit_id, "
 					+ "path, stacktrace,type, source) values(?,?,?,?,?)");
 			statement.setLong(1, commit_id);
@@ -161,16 +157,12 @@ public class DatabaseManager {
 			statement.execute();
 		} catch (Exception e) {
 			Util.logException(e);
-		} finally {
-			closeConnection();
 		}
 	}
 
 	public long addMethodThrowsDeclaration(String path, int start_line, int end_line, String source, boolean custom, boolean standard, boolean library, String types) {
 		long methodThrowsDeclarationId = 0;
 		try {
-
-			openDbConnection();
 			PreparedStatement statement = connection.prepareStatement("insert into method_throws_declarations "
 					+ "(commit_id, path, start_line, end_line, source, custom, standard, library, types) values(?,?,?,?,?,?,?,?,?)");
 			statement.setLong(1, commit_id);
@@ -190,8 +182,6 @@ public class DatabaseManager {
 
 		} catch (Exception e) {
 			Util.logException(e);
-		} finally {
-			closeConnection();
 		}
 
 		return methodThrowsDeclarationId;
@@ -207,8 +197,6 @@ public class DatabaseManager {
 	 */
 	public void addMethodThrowsDeclationType(long methodThrowsDeclarationId, String type, boolean userdefined) {
 		try {
-
-			openDbConnection();
 			PreparedStatement statement = connection.prepareStatement("insert into method_throws_declaration_types"
 					+ " (method_throws_declaration_id, type, userdefined) values(?,?,?)");
 			statement.setLong(1, methodThrowsDeclarationId);
@@ -217,8 +205,6 @@ public class DatabaseManager {
 			statement.execute();
 		} catch (Exception e) {
 			Util.logException(e);
-		} finally {
-			closeConnection();
 		}
 	}
 
@@ -226,7 +212,6 @@ public class DatabaseManager {
 	public long addTryCatch(String path, int start_line, int end_line, String source, int loc_catch, int loc_finally, boolean custom, boolean standard, boolean library, String types, int catch_count, boolean finally_block) {
 		long id = 0;
 		try {
-			openDbConnection();
 			PreparedStatement statement = connection.prepareStatement("insert into trycatchs (commit_id, "
 					+ "path, start_line, end_line, source, loc_catch, loc_finally, custom, standard, library,types, catch_count, finally_block) values(?,?,?,?,?,?,?,?,?,?,?,?,?)");
 			statement.setLong(1, commit_id);
@@ -245,8 +230,6 @@ public class DatabaseManager {
 			statement.execute();
 		} catch (Exception e) {
 			Util.logException(e);
-		} finally {
-			closeConnection();
 		}
 
 		return id;
@@ -254,9 +237,7 @@ public class DatabaseManager {
 
 
 	public void addThrow(String path, int start_line, String source, String exceptionClass, boolean custom, boolean standard, boolean library, boolean stringArg, String stringLiteral) {
-
 		try {
-			openDbConnection();
 			PreparedStatement statement = connection.prepareStatement("insert into throws "
 					+ "(commit_id, path, start_line, source, exception_class, custom, standard, library, string_arg, string_literal)"
 					+ " values(?,?,?,?,?,?,?,?,?,?)");
@@ -273,8 +254,6 @@ public class DatabaseManager {
 			statement.execute();
 		} catch (Exception e) {
 			Util.logException(e);
-		} finally {
-			closeConnection();
 		}
 	}
 
@@ -287,7 +266,6 @@ public class DatabaseManager {
 	 */
 	public void addTcbException(long tcb_id, String className, boolean userdefined) {
 		try {
-			openDbConnection();
 			PreparedStatement statement = connection.prepareStatement("insert into tcbexceptions "
 					+ "(tcb_id, class_name, userdefined)"
 					+ " values(?,?,?)");
@@ -297,23 +275,10 @@ public class DatabaseManager {
 			statement.execute();
 		} catch (Exception e) {
 			Util.logException(e);
-		} finally {
-			closeConnection();
 		}
 	}
-
-	private void closeConnection() {
-		try {
-			closeDbConnection();
-		} catch (SQLException e) {
-			Util.log.info("Could not close database connection.");
-			Util.logException(e);
-		}
-	}
-
 
 	public void createTables() throws Exception {
-		openDbConnection();
 		Statement statement = connection.createStatement();
 		statement.setQueryTimeout(30);  // set timeout to 30 sec.
 
@@ -402,7 +367,7 @@ public class DatabaseManager {
 //			System.err.println(e.getMessage());
 			Util.logException(e);
 		} finally {
-			closeDbConnection();
+			closeConnection();
 		}
 	}
 

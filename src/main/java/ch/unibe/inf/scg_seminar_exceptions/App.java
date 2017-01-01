@@ -31,6 +31,7 @@ public class App {
 			Util.log.info("Started logging at: " + Util.timestampAsString());
 
 			DatabaseManager dbManager = DatabaseManager.getInstance();
+			dbManager.openConnection();
 
 			dbManager.setVersion(timestamp, commitHash, foldername, blankLines, commentLines, codeLines);
 
@@ -41,6 +42,8 @@ public class App {
 			ThrowsVisitor.listAllThrows(new File(args[0]), exceptionClasses);
 			TryCatchVisitor.listAllTryStatements(new File(args[0]), exceptionClasses);
 			ThrowVisitor.listAllThrowStatements(new File(args[0]), exceptionClasses);
+
+			dbManager.closeConnection();
 		} catch (Exception e) {
 			Util.log.log(Level.SEVERE, "Caught exception: ", e);
 		} finally {
