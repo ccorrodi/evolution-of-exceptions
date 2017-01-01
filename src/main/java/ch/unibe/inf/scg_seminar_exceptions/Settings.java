@@ -22,7 +22,7 @@ public class Settings {
 				values.put(key, properties.getProperty(key));
 			}
 		} catch (IOException e) {
-			e.printStackTrace();
+			Util.logException(e);
 		}
 	}
 

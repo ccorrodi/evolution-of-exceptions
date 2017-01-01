@@ -39,8 +39,7 @@ public class ExceptionClassVisitor {
 					}
 				}.visit(JavaParser.parse(file), null);
 			} catch (Exception e) {
-
-				e.printStackTrace();
+				Util.logException(e);
 				dbManager.addParserException(path, e.toString(), "exception class", "");
 			}
 		}).explore(projectDir);
@@ -60,7 +59,7 @@ public class ExceptionClassVisitor {
 				}
 
 			} catch (Exception e) {
-				e.printStackTrace();
+				Util.logException(e);
 				dbManager.addParserException("build tree", e.toString(), "exception class", "");
 			}
 		}

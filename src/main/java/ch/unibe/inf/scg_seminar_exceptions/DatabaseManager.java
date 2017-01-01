@@ -54,7 +54,8 @@ public class DatabaseManager {
 
 				dbManagerInstance.createTables();
 			} catch (Exception e) {
-				// TODO: handle exception
+				// TODO: Handle exception
+				Util.logException(e);
 			}
 		}
 		return dbManagerInstance;
@@ -78,9 +79,10 @@ public class DatabaseManager {
 
 			statement.getGeneratedKeys().next();
 			project_id = statement.getGeneratedKeys().getLong(1);
-			closeDbConnection();
 		} catch (Exception e) {
-			e.printStackTrace();
+			Util.logException(e);
+		} finally {
+			closeConnection();
 		}
 	}
 
@@ -104,9 +106,10 @@ public class DatabaseManager {
 			statement.execute();
 			statement.getGeneratedKeys().next();
 			commit_id = statement.getGeneratedKeys().getLong(1);
-			closeDbConnection();
 		} catch (Exception e) {
-			e.printStackTrace();
+			Util.logException(e);
+		} finally {
+			closeConnection();
 		}
 	}
 
@@ -120,10 +123,10 @@ public class DatabaseManager {
 			statement.setInt(3, line);
 			statement.setString(4, source);
 			statement.execute();
-
-			closeDbConnection();
 		} catch (Exception e) {
-			e.printStackTrace();
+			Util.logException(e);
+		} finally {
+			closeConnection();
 		}
 	}
 
@@ -138,10 +141,10 @@ public class DatabaseManager {
 			statement.setString(4, source);
 			statement.setString(5, type);
 			statement.execute();
-
-			closeDbConnection();
 		} catch (Exception e) {
-			e.printStackTrace();
+			Util.logException(e);
+		} finally {
+			closeConnection();
 		}
 	}
 
@@ -156,10 +159,10 @@ public class DatabaseManager {
 			statement.setString(4, type);
 			statement.setString(5, source);
 			statement.execute();
-
-			closeDbConnection();
 		} catch (Exception e) {
-			e.printStackTrace();
+			Util.logException(e);
+		} finally {
+			closeConnection();
 		}
 	}
 
@@ -185,9 +188,10 @@ public class DatabaseManager {
 //			statement.getGeneratedKeys().next();
 //			methodThrowsDeclarationId = statement.getGeneratedKeys().getLong(1);
 
-			closeDbConnection();
 		} catch (Exception e) {
-			e.printStackTrace();
+			Util.logException(e);
+		} finally {
+			closeConnection();
 		}
 
 		return methodThrowsDeclarationId;
@@ -211,10 +215,10 @@ public class DatabaseManager {
 			statement.setString(2, type);
 			statement.setBoolean(3, userdefined);
 			statement.execute();
-
-			closeDbConnection();
 		} catch (Exception e) {
-			e.printStackTrace();
+			Util.logException(e);
+		} finally {
+			closeConnection();
 		}
 	}
 
@@ -239,10 +243,10 @@ public class DatabaseManager {
 			statement.setInt(12, catch_count);
 			statement.setBoolean(13, finally_block);
 			statement.execute();
-			closeDbConnection();
-
 		} catch (Exception e) {
-			e.printStackTrace();
+			Util.logException(e);
+		} finally {
+			closeConnection();
 		}
 
 		return id;
@@ -267,10 +271,10 @@ public class DatabaseManager {
 			statement.setBoolean(9, stringArg);
 			statement.setString(10, stringLiteral);
 			statement.execute();
-
-			closeDbConnection();
 		} catch (Exception e) {
-			e.printStackTrace();
+			Util.logException(e);
+		} finally {
+			closeConnection();
 		}
 	}
 
@@ -291,12 +295,22 @@ public class DatabaseManager {
 			statement.setString(2, className);
 			statement.setBoolean(3, userdefined);
 			statement.execute();
-
-			closeDbConnection();
 		} catch (Exception e) {
-			e.printStackTrace();
+			Util.logException(e);
+		} finally {
+			closeConnection();
 		}
 	}
+
+	private void closeConnection() {
+		try {
+			closeDbConnection();
+		} catch (SQLException e) {
+			Util.log.info("Could not close database connection.");
+			Util.logException(e);
+		}
+	}
+
 
 	public void createTables() throws Exception {
 		openDbConnection();
@@ -385,7 +399,8 @@ public class DatabaseManager {
 		} catch (SQLException e) {
 			// if the error message is "out of memory",
 			// it probably means no database file is found
-			System.err.println(e.getMessage());
+//			System.err.println(e.getMessage());
+			Util.logException(e);
 		} finally {
 			closeDbConnection();
 		}
@@ -403,13 +418,13 @@ public class DatabaseManager {
 	 * @param commentLines
 	 * @param codeLines
 	 */
-	public void setVersion(String timestamp, String commit, String project, String blankLines, String commentLines, String codeLines) {
+	public void setVersion(String timestamp, String commit, String project, int blankLines, int commentLines, int codeLines) {
 		this.commit = commit;
 		this.timestamp = timestamp;
 		this.project = project;
-		this.blankLines = Integer.parseInt(blankLines);
-		this.commentLines = Integer.parseInt(commentLines);
-		this.codeLines = Integer.parseInt(codeLines);
+		this.blankLines = blankLines;
+		this.commentLines = commentLines;
+		this.codeLines = codeLines;
 	}
 
 }

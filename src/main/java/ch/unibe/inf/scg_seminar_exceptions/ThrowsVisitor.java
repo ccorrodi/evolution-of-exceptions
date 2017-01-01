@@ -60,7 +60,7 @@ public class ThrowsVisitor {
 					}
 				}.visit(JavaParser.parse(file), null);
 			} catch (Exception e) {
-				e.printStackTrace();
+				Util.logException(e);
 				dbManager.addParserException(path, e.toString(), "throws", "");
 			}
 		}).explore(projectDir);

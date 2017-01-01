@@ -104,7 +104,7 @@ public class TryCatchVisitor {
 				}.visit(JavaParser.parse(file), null);
 			} catch (Exception e) {
 				dbManager.addParserException(path, e.toString(), "try catch", "");
-				e.printStackTrace();
+				Util.logException(e);
 			}
 		}).explore(projectDir);
 	}
