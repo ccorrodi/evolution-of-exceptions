@@ -1,3 +1,4 @@
+create view results_summary as
 SELECT b1.project_name, b1.commit_timestamp, b1.commit_hash, b1.code_lines as loc, throws_declarations_custom, throws_declarations_standard, throws_declarations_library, throws_declarations_total, total_methods, catch_custom, catch_standard, catch_library, catch_total, finally_blocks, throw_custom, throw_standard, throw_library, throw_total, throw_unknown, throw_standard_with_string_literal, checked, unchecked, loc_catch, loc_finally, caught_exception
 	FROM (SELECT project_name, commit_timestamp, commit_hash, code_lines,
         count(t1.id) as total_methods,

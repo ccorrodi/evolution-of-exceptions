@@ -1,0 +1,3 @@
+create view ordered_results_summary as
+select *, ROW_NUMBER() over (partition by project_name order by commit_timestamp asc) as row_num
+from results_summary
